@@ -1,0 +1,6 @@
+{
+  "name": "wind-srv IDE Workflow Studio",
+  "description": "High-density IDE workflow component with visual DAG editor, task execution runtime, offices, tickets, receipts, graph validation, and mock API service layer.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
