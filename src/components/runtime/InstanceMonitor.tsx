@@ -7,6 +7,7 @@ import {
 import { Instance, Ticket, Receipt, Task, Outcome, WorkflowVersion } from '../../types/wind';
 import { ThemeMode, getThemeStyles } from '../../types/theme';
 import { api } from '../../services/api';
+import { InstanceTaskTimeline } from './InstanceTaskTimeline';
 
 interface HeatmapDay {
   date: string;
@@ -548,6 +549,17 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
                   </div>
                 </div>
               )}
+
+              {/* Task Execution Sequence Visual Timeline Component */}
+              <InstanceTaskTimeline
+                instance={selectedInstance}
+                version={version}
+                tickets={tickets}
+                receipts={receipts}
+                tasks={tasks}
+                themeMode={themeMode}
+                onAdvanceTicket={(tkt) => handleOpenAdvance(tkt)}
+              />
 
               {/* Tickets Section for this Instance */}
               <div className="space-y-2 pt-1">
