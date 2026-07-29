@@ -12,6 +12,8 @@ interface BrandingBoxProps {
   onChangeTheme: (theme: ThemeMode) => void;
   onOpenConsole: () => void;
   onRefreshData: () => void;
+  onSimulateFail?: () => void;
+  onSimulateTicket?: () => void;
 }
 
 export const BrandingBox: React.FC<BrandingBoxProps> = ({
@@ -19,7 +21,9 @@ export const BrandingBox: React.FC<BrandingBoxProps> = ({
   themeMode,
   onChangeTheme,
   onOpenConsole,
-  onRefreshData
+  onRefreshData,
+  onSimulateFail,
+  onSimulateTicket
 }) => {
   const [mode, setMode] = useState<ApiMode>(api.getMode());
   const [health, setHealth] = useState<{ ok: boolean; schema: string } | null>(null);
@@ -153,6 +157,28 @@ export const BrandingBox: React.FC<BrandingBoxProps> = ({
           <Terminal className="w-3.5 h-3.5 text-[#58a6ff]" />
           <span className="hidden sm:inline">CONSOLE</span>
         </button>
+
+        {/* Test Alert Trigger Buttons */}
+        {onSimulateFail && (
+          <button
+            onClick={onSimulateFail}
+            className="px-2 py-1 rounded text-rose-400 hover:text-white bg-rose-950/40 hover:bg-rose-900/60 transition-colors flex items-center space-x-1 border border-rose-800/60 font-mono text-[10px]"
+            title="Simulate background workflow instance failure alert"
+          >
+            <AlertCircle className="w-3 h-3 text-rose-400" />
+            <span className="hidden lg:inline">+ FAIL ALERT</span>
+          </button>
+        )}
+        {onSimulateTicket && (
+          <button
+            onClick={onSimulateTicket}
+            className="px-2 py-1 rounded text-amber-300 hover:text-white bg-amber-950/40 hover:bg-amber-900/60 transition-colors flex items-center space-x-1 border border-amber-800/60 font-mono text-[10px]"
+            title="Simulate background ticket assigned alert"
+          >
+            <Activity className="w-3 h-3 text-amber-300" />
+            <span className="hidden lg:inline">+ TICKET ALERT</span>
+          </button>
+        )}
 
         {/* Deploy Badge/Action */}
         <button

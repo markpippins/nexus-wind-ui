@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { BrandingBox } from './components/common/BrandingBox';
 import { Sidebar, ActiveTab } from './components/common/Sidebar';
 import { OverviewDashboard } from './components/dashboard/OverviewDashboard';
@@ -9,6 +9,8 @@ import { OfficeManager } from './components/offices/OfficeManager';
 import { GraphValidator } from './components/validation/GraphValidator';
 import { ApiInspector } from './components/api-console/ApiInspector';
 import { TackleManager } from './components/tackle/TackleManager';
+import { ToastContainer } from './components/common/ToastContainer';
+import { Toast, ToastType } from './types/toast';
 
 import {
   Office, Title, Task, Outcome, Workflow, Instance, Ticket, Receipt, Role
@@ -38,6 +40,37 @@ export default function App() {
   // Navigation Deep Links
   const [selectedInstanceIdForMonitor, setSelectedInstanceIdForMonitor] = useState<string>('');
 
+  // Toast Notifications State
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const knownTicketIdsRef = useRef<Set<string>>(new Set());
+  const knownFailedInstanceIdsRef = useRef<Set<string>>(new Set());
+  const isInitialLoadRef = useRef<boolean>(true);
+
+  const addToast = useCallback((toastData: Omit<Toast, 'id' | 'timestamp'>) => {
+    const id = `toast-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+    const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const newToast: Toast = {
+      ...toastData,
+      id,
+      timestamp
+    };
+
+    setToasts(prev => [newToast, ...prev].slice(0, 5)); // Keep max 5
+
+    // Auto-dismiss after 7 seconds
+    setTimeout(() => {
+      removeToast(id);
+    }, toastData.autoDismissMs || 7000);
+  }, []);
+
+  const removeToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  }, []);
+
+  const clearAllToasts = useCallback(() => {
+    setToasts([]);
+  }, []);
+
   const loadAllData = useCallback(async () => {
     try {
       const [offs, ttls, tsks, outs, wfs, insts, tkts, rcpts, rls] = await Promise.all([
@@ -61,14 +94,89 @@ export default function App() {
       setTickets(tkts || []);
       setReceipts(rcpts || []);
       setRoles(rls || []);
+
+      const fetchedTickets = tkts || [];
+      const fetchedInstances = insts || [];
+
+      if (isInitialLoadRef.current) {
+        // Populate initial sets without firing background alerts on initial page boot
+        fetchedTickets.forEach(t => knownTicketIdsRef.current.add(t.id));
+        fetchedInstances.filter(i => i.status === 'FAILED').forEach(i => knownFailedInstanceIdsRef.current.add(i.id));
+        isInitialLoadRef.current = false;
+      } else {
+        // Check for newly assigned tickets in background
+        fetchedTickets.forEach(t => {
+          if (!knownTicketIdsRef.current.has(t.id) && (t.status === 'PENDING' || t.status === 'IN_PROGRESS')) {
+            knownTicketIdsRef.current.add(t.id);
+            addToast({
+              type: 'ticket',
+              title: 'New Ticket Assigned',
+              description: `Ticket #${t.id} ("${t.task_name || 'Workflow Step'}") assigned to role "${t.title_name || 'Title'}"`,
+              actionLabel: 'View Queue',
+              onAction: () => setActiveTab('tickets')
+            });
+          }
+        });
+
+        // Check for newly failed workflow instances in background
+        fetchedInstances.forEach(inst => {
+          if (inst.status === 'FAILED' && !knownFailedInstanceIdsRef.current.has(inst.id)) {
+            knownFailedInstanceIdsRef.current.add(inst.id);
+            addToast({
+              type: 'error',
+              title: 'Workflow Instance Failed',
+              description: `Instance #${inst.id} ("${inst.workflow_name || 'Workflow'}") failed during execution node step`,
+              actionLabel: 'Inspect Instance',
+              onAction: () => {
+                setSelectedInstanceIdForMonitor(inst.id);
+                setActiveTab('instances');
+              }
+            });
+          }
+        });
+      }
     } catch (err) {
       console.error('Error loading API data', err);
     }
-  }, []);
+  }, [addToast]);
 
   useEffect(() => {
     loadAllData();
+
+    // Background polling every 8 seconds to detect background changes
+    const interval = setInterval(() => {
+      loadAllData();
+    }, 8000);
+
+    return () => clearInterval(interval);
   }, [loadAllData]);
+
+  // Handlers to trigger simulated alerts for quick testing/demoing
+  const handleSimulateFail = () => {
+    const mockId = `inst-fail-${Math.floor(Math.random() * 900 + 100)}`;
+    addToast({
+      type: 'error',
+      title: 'Workflow Instance Failed',
+      description: `Instance #${mockId} ("Financial Audit Workflow") failed at node "validate_csv_format" due to schema validation error`,
+      actionLabel: 'Inspect Instance',
+      onAction: () => {
+        setActiveTab('instances');
+      }
+    });
+  };
+
+  const handleSimulateTicket = () => {
+    const mockTicketId = `tkt-new-${Math.floor(Math.random() * 900 + 100)}`;
+    addToast({
+      type: 'ticket',
+      title: 'New Ticket Assigned',
+      description: `Ticket #${mockTicketId} ("Approve Compliance Exception") assigned to title "Chief Compliance Officer"`,
+      actionLabel: 'View Queue',
+      onAction: () => {
+        setActiveTab('tickets');
+      }
+    });
+  };
 
   const handleToggleTheme = () => {
     setThemeMode(prev => prev === 'light' ? 'dark' : prev === 'dark' ? 'steel' : 'light');
@@ -117,6 +225,8 @@ export default function App() {
         onChangeTheme={setThemeMode}
         onOpenConsole={() => setActiveTab('api-console')}
         onRefreshData={loadAllData}
+        onSimulateFail={handleSimulateFail}
+        onSimulateTicket={handleSimulateTicket}
       />
 
       {/* Main IDE Layout Body */}
@@ -169,6 +279,7 @@ export default function App() {
               instances={instances}
               tasks={tasks}
               isDark={isDark}
+              themeMode={themeMode}
               onRefresh={loadAllData}
               initialSelectedInstanceId={selectedInstanceIdForMonitor}
             />
@@ -213,6 +324,16 @@ export default function App() {
           )}
         </main>
       </div>
+
+      {/* Toast Notification Container */}
+      <ToastContainer
+        toasts={toasts}
+        onDismiss={removeToast}
+        onClearAll={clearAllToasts}
+        themeMode={themeMode}
+        onSimulateFail={handleSimulateFail}
+        onSimulateTicket={handleSimulateTicket}
+      />
     </div>
   );
 }
