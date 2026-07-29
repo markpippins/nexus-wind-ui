@@ -9,6 +9,7 @@ import { OfficeManager } from './components/offices/OfficeManager';
 import { GraphValidator } from './components/validation/GraphValidator';
 import { ApiInspector } from './components/api-console/ApiInspector';
 import { TackleManager } from './components/tackle/TackleManager';
+import { EventManager } from './components/events/EventManager';
 import { ToastContainer } from './components/common/ToastContainer';
 import { Toast, ToastType } from './types/toast';
 
@@ -293,6 +294,23 @@ export default function App() {
               isDark={isDark}
               onRefresh={loadAllData}
               onNavigateInstance={handleNavigateInstance}
+            />
+          )}
+
+          {activeTab === 'events' && (
+            <EventManager
+              themeMode={themeMode}
+              onNavigateToInstance={(instId) => {
+                setSelectedInstanceIdForMonitor(instId);
+                setActiveTab('instances');
+              }}
+              onToast={(msg, type) => {
+                addToast({
+                  type: type === 'fail' ? 'error' : 'ticket',
+                  title: type === 'fail' ? 'Event Error' : 'Event Stream Notification',
+                  description: msg
+                });
+              }}
             />
           )}
 

@@ -1,6 +1,7 @@
 import {
   Office, Title, Task, Outcome, Workflow, WorkflowVersion, WorkflowNode,
-  WorkflowEdge, Instance, Ticket, Receipt, Role, GraphValidationResult, StructuralValidationResult
+  WorkflowEdge, Instance, Ticket, Receipt, Role, GraphValidationResult, StructuralValidationResult,
+  EventItem, EventType, ExecuteTicketResult, WorkflowRunResult
 } from '../types/wind';
 import {
   AIProvider, AIHarness, AIModel, AIRoleConfig, AIConfigBundle,
@@ -11,7 +12,8 @@ import {
 import {
   INITIAL_OFFICES, INITIAL_TITLES, INITIAL_TASKS, INITIAL_OUTCOMES,
   INITIAL_WORKFLOWS, INITIAL_VERSIONS, INITIAL_NODES, INITIAL_EDGES,
-  INITIAL_INSTANCES, INITIAL_TICKETS, INITIAL_RECEIPTS, INITIAL_ROLES
+  INITIAL_INSTANCES, INITIAL_TICKETS, INITIAL_RECEIPTS, INITIAL_ROLES,
+  INITIAL_EVENT_TYPES, INITIAL_EVENTS
 } from './mockData';
 import {
   INITIAL_AI_PROVIDERS, INITIAL_AI_HARNESSES, INITIAL_AI_MODELS,
@@ -54,6 +56,10 @@ class MockBackendEngine {
   private tickets: Ticket[];
   private receipts: Receipt[];
 
+  // Event Pipeline
+  private events: EventItem[];
+  private eventTypes: EventType[];
+
   // Tackle AI State
   private providers: AIProvider[];
   private harnesses: AIHarness[];
@@ -82,6 +88,10 @@ class MockBackendEngine {
     this.instances = loadStorage('instances', INITIAL_INSTANCES);
     this.tickets = loadStorage('tickets', INITIAL_TICKETS);
     this.receipts = loadStorage('receipts', INITIAL_RECEIPTS);
+
+    // Events
+    this.eventTypes = loadStorage('event_types', INITIAL_EVENT_TYPES);
+    this.events = loadStorage('events', INITIAL_EVENTS);
 
     // Tackle AI
     this.providers = loadStorage('tackle_providers', INITIAL_AI_PROVIDERS);
@@ -113,6 +123,9 @@ class MockBackendEngine {
     this.tickets = [...INITIAL_TICKETS];
     this.receipts = [...INITIAL_RECEIPTS];
 
+    this.eventTypes = [...INITIAL_EVENT_TYPES];
+    this.events = [...INITIAL_EVENTS];
+
     this.providers = [...INITIAL_AI_PROVIDERS];
     this.harnesses = [...INITIAL_AI_HARNESSES];
     this.models = [...INITIAL_AI_MODELS];
@@ -143,6 +156,9 @@ class MockBackendEngine {
     saveStorage('instances', this.instances);
     saveStorage('tickets', this.tickets);
     saveStorage('receipts', this.receipts);
+
+    saveStorage('event_types', this.eventTypes);
+    saveStorage('events', this.events);
 
     saveStorage('tackle_providers', this.providers);
     saveStorage('tackle_harnesses', this.harnesses);
@@ -1428,6 +1444,215 @@ class MockBackendEngine {
     this.persistAll();
     return { ...this.circuitBreaker };
   }
+
+  // ==========================================
+  // SINGLE TICKET HARNESS & WORKFLOW RUN LOOP
+  // ==========================================
+  public executeInstanceTicket(instanceId: string): ExecuteTicketResult {
+    const inst = this.instances.find(i => i.id === instanceId);
+    if (!inst) {
+      throw new Error(`Instance ${instanceId} not found`);
+    }
+    if (inst.status !== 'ACTIVE') {
+      throw new Error(`Instance is ${inst.status}, must be ACTIVE to execute harness`);
+    }
+
+    const ticket = this.tickets.find(t => t.instance_id === instanceId && (t.status === 'PENDING' || t.status === 'IN_PROGRESS'));
+    if (!ticket) {
+      return {
+        success: false,
+        stdout: `No pending or in-progress tickets found for instance ${instanceId}.`,
+        stderr: 'NO_PENDING_TICKETS',
+        exit_code: 1,
+        ticket_id: '',
+        instance_id: instanceId,
+        logs: [`[harness-srv] Checked instance ${instanceId} - no actionable tickets pending.`]
+      };
+    }
+
+    ticket.status = 'IN_PROGRESS';
+    ticket.updated_at = new Date().toISOString();
+
+    const task = this.getTaskById(ticket.task_id);
+    const taskOutcomes = this.getOutcomes(ticket.task_id);
+    const selectedOutcome = taskOutcomes.length > 0 ? taskOutcomes[0] : { id: 'out-default', task_id: ticket.task_id, code: 'COMPLETED_SUCCESS' };
+
+    const logs: string[] = [
+      `[harness-srv] Initializing task runner worker for ticket ${ticket.id}`,
+      `[harness-srv] Task: "${task?.name || ticket.task_name}" | Node: "${ticket.node_name}"`,
+      `[harness-srv] Executing task payload & validating AST specs against harness pipeline...`,
+      `[harness-srv] Execution completed successfully (exit code 0). Outcome code: ${selectedOutcome.code}`
+    ];
+
+    const stdout = logs.join('\n');
+    const advanceResult = this.advanceInstance(instanceId, ticket.id, selectedOutcome.id);
+
+    return {
+      success: true,
+      stdout,
+      stderr: '',
+      exit_code: 0,
+      ticket_id: ticket.id,
+      instance_id: instanceId,
+      outcome_code: selectedOutcome.code,
+      receipt: advanceResult.receipt,
+      logs
+    };
+  }
+
+  public runInstanceWorkflow(instanceId: string): WorkflowRunResult {
+    const inst = this.instances.find(i => i.id === instanceId);
+    if (!inst) {
+      throw new Error(`Instance ${instanceId} not found`);
+    }
+
+    const ticketsProcessed: string[] = [];
+    const receiptsCreated: Receipt[] = [];
+    const logs: string[] = [`[workflow-runner] Starting automated execution loop for instance ${instanceId}`];
+    let stepsExecuted = 0;
+    const maxSteps = 25;
+
+    while (inst.status === 'ACTIVE' && stepsExecuted < maxSteps) {
+      const pendingTicket = this.tickets.find(t => t.instance_id === instanceId && (t.status === 'PENDING' || t.status === 'IN_PROGRESS'));
+      if (!pendingTicket) {
+        logs.push(`[workflow-runner] No more pending tickets found. Loop completed.`);
+        break;
+      }
+
+      const execRes = this.executeInstanceTicket(instanceId);
+      if (!execRes.success) {
+        logs.push(`[workflow-runner] Execution step halted: ${execRes.stderr}`);
+        break;
+      }
+
+      stepsExecuted++;
+      ticketsProcessed.push(execRes.ticket_id);
+      if (execRes.receipt) receiptsCreated.push(execRes.receipt);
+      logs.push(`[workflow-runner] Step ${stepsExecuted}: Executed ticket ${execRes.ticket_id} -> Outcome: ${execRes.outcome_code}`);
+    }
+
+    return {
+      success: true,
+      instance_id: instanceId,
+      steps_executed: stepsExecuted,
+      tickets_processed: ticketsProcessed,
+      receipts_created: receiptsCreated,
+      final_status: inst.status,
+      logs
+    };
+  }
+
+  // ==========================================
+  // EVENT PIPELINE & EVENT TYPES
+  // ==========================================
+  public getEvents(): EventItem[] {
+    return [...this.events].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }
+
+  public getEventById(id: string): EventItem | null {
+    return this.events.find(e => e.id === id) || null;
+  }
+
+  public createEvent(data: Partial<EventItem>): { event: EventItem; triggered_instance_id?: string } {
+    if (!data.event_type) {
+      throw new Error('event_type is required');
+    }
+
+    const newEvent: EventItem = {
+      id: `evt-${Date.now().toString(36)}-${Math.floor(Math.random() * 1000)}`,
+      event_type: data.event_type,
+      subject: data.subject || `Event published: ${data.event_type}`,
+      payload: data.payload || {},
+      source: data.source || 'api-gateway',
+      created_at: new Date().toISOString(),
+      consumed_at: null,
+      metadata: data.metadata || { published_to_bus: true, nats_topic: `events.${data.event_type}` }
+    };
+
+    this.events.unshift(newEvent);
+
+    let triggeredInstanceId: string | undefined = undefined;
+    const matchedType = this.eventTypes.find(et => et.event_type === data.event_type && et.enabled);
+    if (matchedType && matchedType.workflow_id) {
+      const wf = this.getWorkflowById(matchedType.workflow_id);
+      if (wf && wf.active_version_id) {
+        const newInst = this.startInstance({ workflow_version_id: wf.active_version_id });
+        triggeredInstanceId = newInst.id;
+        newEvent.metadata = {
+          ...newEvent.metadata,
+          auto_triggered_workflow_id: matchedType.workflow_id,
+          auto_triggered_instance_id: newInst.id
+        };
+      }
+    }
+
+    this.persistAll();
+    return { event: newEvent, triggered_instance_id: triggeredInstanceId };
+  }
+
+  public pollUnconsumedEvents(limit = 10): EventItem[] {
+    const unconsumed = this.events.filter(e => !e.consumed_at);
+    const polled = unconsumed.slice(0, limit);
+    const now = new Date().toISOString();
+
+    polled.forEach(e => {
+      e.consumed_at = now;
+    });
+
+    this.persistAll();
+    return polled;
+  }
+
+  public getEventTypes(): EventType[] {
+    return [...this.eventTypes];
+  }
+
+  public getEventTypeByName(eventType: string): EventType | null {
+    return this.eventTypes.find(et => et.event_type.toLowerCase() === eventType.toLowerCase()) || null;
+  }
+
+  public createEventType(data: Partial<EventType>): EventType {
+    if (!data.event_type) {
+      throw new Error('event_type is required');
+    }
+
+    const existingIdx = this.eventTypes.findIndex(et => et.event_type.toLowerCase() === data.event_type!.toLowerCase());
+    
+    let wfName = data.workflow_name;
+    if (data.workflow_id && !wfName) {
+      const wf = this.getWorkflowById(data.workflow_id);
+      if (wf) wfName = wf.name;
+    }
+
+    const eventTypeObj: EventType = {
+      event_type: data.event_type,
+      description: data.description || 'Registered system pipeline event type',
+      schema: data.schema || {},
+      workflow_id: data.workflow_id || null,
+      workflow_name: wfName || null,
+      dedup_key_template: data.dedup_key_template || `dedup-{{payload.id}}`,
+      enabled: data.enabled !== undefined ? !!data.enabled : true,
+      created_at: existingIdx !== -1 ? this.eventTypes[existingIdx].created_at : new Date().toISOString()
+    };
+
+    if (existingIdx !== -1) {
+      this.eventTypes[existingIdx] = eventTypeObj;
+    } else {
+      this.eventTypes.push(eventTypeObj);
+    }
+
+    this.persistAll();
+    return eventTypeObj;
+  }
+
+  public deleteEventType(eventType: string): boolean {
+    const idx = this.eventTypes.findIndex(et => et.event_type.toLowerCase() === eventType.toLowerCase());
+    if (idx === -1) return false;
+    this.eventTypes.splice(idx, 1);
+    this.persistAll();
+    return true;
+  }
+
 }
 
 export const mockBackend = new MockBackendEngine();

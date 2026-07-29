@@ -1,4 +1,4 @@
-import { Office, Title, Task, Outcome, Workflow, WorkflowVersion, WorkflowNode, WorkflowEdge, Instance, Ticket, Receipt, Role } from '../types/wind';
+import { Office, Title, Task, Outcome, Workflow, WorkflowVersion, WorkflowNode, WorkflowEdge, Instance, Ticket, Receipt, Role, EventItem, EventType } from '../types/wind';
 
 export const INITIAL_ROLES: Role[] = [
   { id: 'role-101', name: 'Software Architect', description: 'Designs high level system architecture and workflow graphs' },
@@ -244,3 +244,70 @@ export const INITIAL_RECEIPTS: Receipt[] = [
     created_at: '2026-07-24T14:22:00Z'
   }
 ];
+
+export const INITIAL_EVENT_TYPES: EventType[] = [
+  {
+    event_type: 'github.pull_request.opened',
+    description: 'Triggered when a developer opens or updates a GitHub Pull Request',
+    schema: { pr_id: 'number', repository: 'string', author: 'string', branch: 'string' },
+    workflow_id: 'wf-1',
+    workflow_name: 'CI/CD Feature Pipeline',
+    dedup_key_template: 'pr-{{payload.repository}}-{{payload.pr_id}}',
+    enabled: true,
+    created_at: '2026-07-25T10:00:00Z'
+  },
+  {
+    event_type: 'secops.cve.detected',
+    description: 'Emitted when vulnerability scanner detects a high severity CVE in dependencies',
+    schema: { cve_id: 'string', severity: 'string', package_name: 'string' },
+    workflow_id: 'wf-2',
+    workflow_name: 'Urgent Patch Dispatch',
+    dedup_key_template: 'sec-{{payload.cve_id}}',
+    enabled: true,
+    created_at: '2026-07-25T10:30:00Z'
+  },
+  {
+    event_type: 'deploy.status.failed',
+    description: 'Telemetry event published when production health check fails post-rollout',
+    schema: { cluster: 'string', instance_id: 'string', error_code: 'string' },
+    workflow_id: 'wf-2',
+    workflow_name: 'Urgent Patch Dispatch',
+    dedup_key_template: 'fail-{{payload.instance_id}}',
+    enabled: true,
+    created_at: '2026-07-25T11:00:00Z'
+  }
+];
+
+export const INITIAL_EVENTS: EventItem[] = [
+  {
+    id: 'evt-1001',
+    event_type: 'github.pull_request.opened',
+    subject: 'PR #142: Add OAuth telemetry logging',
+    payload: { pr_id: 142, repository: 'wind-srv/core', author: 'dev_alex', branch: 'feat/oauth' },
+    source: 'github-webhook-srv',
+    created_at: '2026-07-29T03:15:00Z',
+    consumed_at: '2026-07-29T03:15:02Z',
+    metadata: { nats_sequence: 1042, trace_id: 'tr-9921a' }
+  },
+  {
+    id: 'evt-1002',
+    event_type: 'secops.cve.detected',
+    subject: 'CVE-2026-8812 detected in jsonwebtoken 8.5.1',
+    payload: { cve_id: 'CVE-2026-8812', severity: 'HIGH', package_name: 'jsonwebtoken' },
+    source: 'trivy-scanner-srv',
+    created_at: '2026-07-29T03:40:00Z',
+    consumed_at: null,
+    metadata: { nats_sequence: 1043, trace_id: 'tr-1042b' }
+  },
+  {
+    id: 'evt-1003',
+    event_type: 'deploy.status.failed',
+    subject: 'Staging cluster deployment check timeout',
+    payload: { cluster: 'us-west1-staging', instance_id: 'inst-1002', error_code: 'ERR_HEALTH_TIMEOUT' },
+    source: 'k8s-operator',
+    created_at: '2026-07-29T04:05:00Z',
+    consumed_at: null,
+    metadata: { nats_sequence: 1044, trace_id: 'tr-1088c' }
+  }
+];
+

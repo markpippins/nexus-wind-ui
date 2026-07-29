@@ -167,3 +167,47 @@ export interface ApiLog {
   responsePayload?: any;
   curlCommand: string;
 }
+
+export interface EventItem {
+  id: string;
+  event_type: string;
+  subject: string;
+  payload: Record<string, any>;
+  source: string;
+  created_at: string;
+  consumed_at?: string | null;
+  metadata?: Record<string, any>;
+}
+
+export interface EventType {
+  event_type: string;
+  description: string;
+  schema?: Record<string, any>;
+  workflow_id?: string | null;
+  workflow_name?: string | null;
+  dedup_key_template?: string | null;
+  enabled: boolean;
+  created_at: string;
+}
+
+export interface ExecuteTicketResult {
+  success: boolean;
+  stdout: string;
+  stderr: string;
+  exit_code: number;
+  ticket_id: string;
+  instance_id: string;
+  outcome_code?: string;
+  receipt?: Receipt;
+  logs: string[];
+}
+
+export interface WorkflowRunResult {
+  success: boolean;
+  instance_id: string;
+  steps_executed: number;
+  tickets_processed: string[];
+  receipts_created: Receipt[];
+  final_status: string;
+  logs: string[];
+}

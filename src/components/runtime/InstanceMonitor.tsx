@@ -214,6 +214,35 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
     }
   };
 
+  const handleExecuteHarness = async () => {
+    if (!selectedInstanceId) return;
+    try {
+      const res = await api.executeInstanceTicket(selectedInstanceId);
+      if (res.success) {
+        onRefresh();
+        loadInstanceDetails(selectedInstanceId);
+      } else {
+        alert(res.stdout || 'Harness execution could not proceed.');
+      }
+    } catch (e: any) {
+      alert(e.message || 'Harness execution failed');
+    }
+  };
+
+  const handleRunLoop = async () => {
+    if (!selectedInstanceId) return;
+    try {
+      const res = await api.runInstanceWorkflow(selectedInstanceId);
+      if (res.success) {
+        alert(`Workflow Loop Executed ${res.steps_executed} steps automatically! Final status: ${res.final_status}`);
+        onRefresh();
+        loadInstanceDetails(selectedInstanceId);
+      }
+    } catch (e: any) {
+      alert(e.message || 'Auto-run workflow loop failed');
+    }
+  };
+
   const handleOpenAdvance = (tkt: Ticket) => {
     setAdvanceTicket(tkt);
     const task = tasks.find(t => t.id === tkt.task_id);
@@ -484,15 +513,35 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
                 </div>
 
                 {/* Instance State Actions */}
-                <div className="flex items-center space-x-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {selectedInstance.status === 'ACTIVE' && (
-                    <button
-                      onClick={handlePause}
-                      className="px-2.5 py-1 rounded bg-amber-700 hover:bg-amber-600 text-white font-mono text-[11px] font-bold transition-all flex items-center space-x-1"
-                    >
-                      <PauseCircle className="w-3.5 h-3.5" />
-                      <span>PAUSE</span>
-                    </button>
+                    <>
+                      <button
+                        onClick={handleExecuteHarness}
+                        className="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white font-mono text-[11px] font-bold transition-all flex items-center space-x-1 shadow-sm"
+                        title="POST /api/instances/:id/execute - Run harness for single pending ticket"
+                      >
+                        <Zap className="w-3.5 h-3.5" />
+                        <span>EXECUTE HARNESS</span>
+                      </button>
+
+                      <button
+                        onClick={handleRunLoop}
+                        className="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-[11px] font-bold transition-all flex items-center space-x-1 shadow-sm"
+                        title="POST /api/instances/:id/run - Automatic workflow execution loop"
+                      >
+                        <Play className="w-3.5 h-3.5" />
+                        <span>AUTO-RUN LOOP</span>
+                      </button>
+
+                      <button
+                        onClick={handlePause}
+                        className="px-2.5 py-1 rounded bg-amber-700 hover:bg-amber-600 text-white font-mono text-[11px] font-bold transition-all flex items-center space-x-1"
+                      >
+                        <PauseCircle className="w-3.5 h-3.5" />
+                        <span>PAUSE</span>
+                      </button>
+                    </>
                   )}
 
                   {selectedInstance.status === 'PAUSED' && (

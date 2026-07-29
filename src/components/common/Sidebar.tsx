@@ -1,11 +1,11 @@
 import React from 'react';
 import {
   LayoutDashboard, GitMerge, PlayCircle, Ticket, Building2, CheckSquare,
-  Terminal, ShieldCheck, Layers, ChevronLeft, ChevronRight, Activity, Cpu
+  Terminal, ShieldCheck, Layers, ChevronLeft, ChevronRight, Activity, Cpu, Radio
 } from 'lucide-react';
 import { ThemeMode, getThemeStyles } from '../../types/theme';
 
-export type ActiveTab = 'dashboard' | 'workflows' | 'instances' | 'tickets' | 'offices' | 'validation' | 'api-console' | 'tackle';
+export type ActiveTab = 'dashboard' | 'workflows' | 'instances' | 'tickets' | 'events' | 'offices' | 'validation' | 'api-console' | 'tackle';
 
 interface SidebarProps {
   activeTab: ActiveTab;
@@ -85,6 +85,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: Ticket,
       badge: pendingTicketCount > 0 ? pendingTicketCount : null,
       badgeColor: 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+    },
+    {
+      id: 'events' as ActiveTab,
+      label: 'Event Store & Triggers',
+      shortLabel: 'Events',
+      icon: Radio,
+      badge: null
     },
     {
       id: 'offices' as ActiveTab,

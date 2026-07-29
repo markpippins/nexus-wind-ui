@@ -548,6 +548,48 @@ class ApiService {
     return this.request('POST', '/config/failure-recovery', () => mockBackend.saveCircuitBreaker(data), data);
   }
 
+  // --- INSTANCE HARNESS EXECUTION & AUTOMATED LOOP ---
+  public executeInstanceTicket(id: string) {
+    return this.request('POST', `/api/instances/${id}/execute`, () => mockBackend.executeInstanceTicket(id), {});
+  }
+
+  public runInstanceWorkflow(id: string) {
+    return this.request('POST', `/api/instances/${id}/run`, () => mockBackend.runInstanceWorkflow(id), {});
+  }
+
+  // --- EVENT PIPELINE & EVENT TYPES ---
+  public getEvents() {
+    return this.request('GET', '/api/events', () => mockBackend.getEvents());
+  }
+
+  public getEventById(id: string) {
+    return this.request('GET', `/api/events/${id}`, () => mockBackend.getEventById(id));
+  }
+
+  public createEvent(data: any) {
+    return this.request('POST', '/api/events', () => mockBackend.createEvent(data), data);
+  }
+
+  public pollEvents(limit: number = 10) {
+    return this.request('POST', '/api/events/poll', () => mockBackend.pollUnconsumedEvents(limit), { limit });
+  }
+
+  public getEventTypes() {
+    return this.request('GET', '/api/event-types', () => mockBackend.getEventTypes());
+  }
+
+  public getEventType(eventType: string) {
+    return this.request('GET', `/api/event-types/${eventType}`, () => mockBackend.getEventTypeByName(eventType));
+  }
+
+  public createEventType(data: any) {
+    return this.request('POST', '/api/event-types', () => mockBackend.createEventType(data), data);
+  }
+
+  public deleteEventType(eventType: string) {
+    return this.request('DELETE', `/api/event-types/${eventType}`, () => mockBackend.deleteEventType(eventType));
+  }
+
   public resetMockData() {
     mockBackend.resetToSeed();
     this.logCall('POST', '/api/admin/reset-mock-seed', 200, 10, {}, { ok: true, message: "Reset to seed data" });
