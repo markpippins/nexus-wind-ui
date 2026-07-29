@@ -402,8 +402,7 @@ class MockBackendEngine {
       return {
         ...wf,
         version_count: versions.length,
-        active_version_id: activeVer?.id,
-        active_version_number: activeVer?.version_number
+        active_version: activeVer?.version_number
       };
     });
   }
@@ -416,8 +415,7 @@ class MockBackendEngine {
     return {
       ...wf,
       version_count: versions.length,
-      active_version_id: activeVer?.id,
-      active_version_number: activeVer?.version_number,
+      active_version: activeVer?.version_number,
       versions
     };
   }
@@ -702,16 +700,18 @@ class MockBackendEngine {
 
     const newTicket: Ticket = {
       id: `tkt-${Date.now().toString(36)}-${Math.floor(Math.random() * 1000)}`,
-      instance_id: instanceId,
+      workflow_instance_id: instanceId,
       workflow_version_id: versionId,
       node_id: node.id,
-      task_id: node.task_id,
-      title_id: task?.title_id || 'title-1',
+      node_task_id: node.task_id,
+      assigned_title_id: task?.title_id || 'title-1',
       status: 'PENDING',
       node_name: node.name,
       task_name: task?.name,
       title_name: task?.title_name,
       workflow_name: wf?.name,
+      input_artifact_type: 'workflow_start',
+      input_artifact_id: instanceId,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -745,7 +745,7 @@ class MockBackendEngine {
 
     // Cancel all PENDING or IN_PROGRESS tickets
     this.tickets.forEach(t => {
-      if (t.instance_id === id && (t.status === 'PENDING' || t.status === 'IN_PROGRESS')) {
+      if (t.workflow_instance_id === id && (t.status === 'PENDING' || t.status === 'IN_PROGRESS')) {
         t.status = 'CANCELLED';
         t.updated_at = new Date().toISOString();
       }
@@ -779,7 +779,7 @@ class MockBackendEngine {
     if (!ticket) {
       throw new Error(`Ticket ${ticketId} not found`);
     }
-    if (ticket.instance_id !== instanceId) {
+    if (ticket.workflow_instance_id !== instanceId) {
       throw new Error(`Ticket ${ticketId} does not belong to instance ${instanceId}`);
     }
     if (ticket.status !== 'PENDING' && ticket.status !== 'IN_PROGRESS') {
@@ -790,12 +790,12 @@ class MockBackendEngine {
     if (!outcome) {
       throw new Error(`Outcome ${outcomeId} not found`);
     }
-    if (outcome.task_id !== ticket.task_id) {
-      throw new Error(`Outcome ${outcome.code} does not belong to task ${ticket.task_id}`);
+    if (outcome.task_id !== ticket.node_task_id) {
+      throw new Error(`Outcome ${outcome.code} does not belong to task ${ticket.node_task_id}`);
     }
 
     const node = this.getNodeById(ticket.node_id);
-    const task = this.getTaskById(ticket.task_id);
+    const task = this.getTaskById(ticket.node_task_id);
 
     // 3. Mark ticket COMPLETED
     ticket.status = 'COMPLETED';
@@ -805,13 +805,15 @@ class MockBackendEngine {
     const newReceipt: Receipt = {
       id: `rcpt-${Date.now().toString(36)}-${Math.floor(Math.random() * 1000)}`,
       ticket_id: ticketId,
-      instance_id: instanceId,
+      ticket_task_id: ticket.node_task_id,
       outcome_id: outcomeId,
       outcome_code: outcome.code,
       task_name: task?.name || 'Task Execution',
-      node_name: node?.name,
-      output_data: outcome.output_spec || { timestamp: new Date().toISOString(), status: 'SUCCESS' },
-      created_at: new Date().toISOString()
+      work_request_id: ticketId,
+      output_artifact_type: 'advance',
+      output_artifact_id: ticketId,
+      completed_at: new Date().toISOString(),
+      metadata: { outcome_data: outcome.output_spec || { timestamp: new Date().toISOString(), status: 'SUCCESS' } }
     };
     this.receipts.push(newReceipt);
 
@@ -832,7 +834,7 @@ class MockBackendEngine {
 
     // 7. Terminal or completion check
     const activeOrPendingTickets = this.tickets.filter(
-      t => t.instance_id === instanceId && (t.status === 'PENDING' || t.status === 'IN_PROGRESS')
+      t => t.workflow_instance_id === instanceId && (t.status === 'PENDING' || t.status === 'IN_PROGRESS')
     );
 
     if (activeOrPendingTickets.length === 0) {
@@ -854,8 +856,8 @@ class MockBackendEngine {
   public getTickets(instanceId?: string, status?: string, titleId?: string): Ticket[] {
     let list = this.tickets.map(t => {
       const node = this.nodes.find(n => n.id === t.node_id);
-      const task = this.tasks.find(tsk => tsk.id === t.task_id);
-      const title = this.titles.find(ttl => ttl.id === t.title_id);
+      const task = this.tasks.find(tsk => tsk.id === t.node_task_id);
+      const title = this.titles.find(ttl => ttl.id === t.assigned_title_id);
       const ver = this.versions.find(v => v.id === t.workflow_version_id);
       const wf = ver ? this.workflows.find(w => w.id === ver.workflow_id) : null;
       return {
@@ -867,9 +869,9 @@ class MockBackendEngine {
       };
     });
 
-    if (instanceId) list = list.filter(t => t.instance_id === instanceId);
+    if (instanceId) list = list.filter(t => t.workflow_instance_id === instanceId);
     if (status) list = list.filter(t => t.status === status);
-    if (titleId) list = list.filter(t => t.title_id === titleId);
+    if (titleId) list = list.filter(t => t.assigned_title_id === titleId);
 
     return list;
   }
@@ -896,7 +898,13 @@ class MockBackendEngine {
   public getReceipts(ticketId?: string, instanceId?: string): Receipt[] {
     let list = [...this.receipts];
     if (ticketId) list = list.filter(r => r.ticket_id === ticketId);
-    if (instanceId) list = list.filter(r => r.instance_id === instanceId);
+    if (instanceId) {
+      // Find tickets for this instance, then filter receipts by those ticket IDs
+      const instanceTicketIds = this.tickets
+        .filter(t => t.workflow_instance_id === instanceId)
+        .map(t => t.id);
+      list = list.filter(r => instanceTicketIds.includes(r.ticket_id));
+    }
     return list;
   }
 
@@ -1457,7 +1465,7 @@ class MockBackendEngine {
       throw new Error(`Instance is ${inst.status}, must be ACTIVE to execute harness`);
     }
 
-    const ticket = this.tickets.find(t => t.instance_id === instanceId && (t.status === 'PENDING' || t.status === 'IN_PROGRESS'));
+    const ticket = this.tickets.find(t => t.workflow_instance_id === instanceId && (t.status === 'PENDING' || t.status === 'IN_PROGRESS'));
     if (!ticket) {
       return {
         success: false,
@@ -1473,9 +1481,9 @@ class MockBackendEngine {
     ticket.status = 'IN_PROGRESS';
     ticket.updated_at = new Date().toISOString();
 
-    const task = this.getTaskById(ticket.task_id);
-    const taskOutcomes = this.getOutcomes(ticket.task_id);
-    const selectedOutcome = taskOutcomes.length > 0 ? taskOutcomes[0] : { id: 'out-default', task_id: ticket.task_id, code: 'COMPLETED_SUCCESS' };
+    const task = this.getTaskById(ticket.node_task_id);
+    const taskOutcomes = this.getOutcomes(ticket.node_task_id);
+    const selectedOutcome = taskOutcomes.length > 0 ? taskOutcomes[0] : { id: 'out-default', task_id: ticket.node_task_id, code: 'COMPLETED_SUCCESS' };
 
     const logs: string[] = [
       `[harness-srv] Initializing task runner worker for ticket ${ticket.id}`,
@@ -1513,7 +1521,7 @@ class MockBackendEngine {
     const maxSteps = 25;
 
     while (inst.status === 'ACTIVE' && stepsExecuted < maxSteps) {
-      const pendingTicket = this.tickets.find(t => t.instance_id === instanceId && (t.status === 'PENDING' || t.status === 'IN_PROGRESS'));
+      const pendingTicket = this.tickets.find(t => t.workflow_instance_id === instanceId && (t.status === 'PENDING' || t.status === 'IN_PROGRESS'));
       if (!pendingTicket) {
         logs.push(`[workflow-runner] No more pending tickets found. Loop completed.`);
         break;
@@ -1575,14 +1583,17 @@ class MockBackendEngine {
     const matchedType = this.eventTypes.find(et => et.event_type === data.event_type && et.enabled);
     if (matchedType && matchedType.workflow_id) {
       const wf = this.getWorkflowById(matchedType.workflow_id);
-      if (wf && wf.active_version_id) {
-        const newInst = this.startInstance({ workflow_version_id: wf.active_version_id });
-        triggeredInstanceId = newInst.id;
-        newEvent.metadata = {
-          ...newEvent.metadata,
-          auto_triggered_workflow_id: matchedType.workflow_id,
-          auto_triggered_instance_id: newInst.id
-        };
+      if (wf) {
+        const activeVerId = wf.versions?.find(v => v.is_active)?.id || wf.versions?.[0]?.id;
+        if (activeVerId) {
+          const newInst = this.startInstance({ workflow_version_id: activeVerId });
+          triggeredInstanceId = newInst.id;
+          newEvent.metadata = {
+            ...newEvent.metadata,
+            auto_triggered_workflow_id: matchedType.workflow_id,
+            auto_triggered_instance_id: newInst.id
+          };
+        }
       }
     }
 

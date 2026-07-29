@@ -168,7 +168,8 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
         const tkts = await api.getTickets(instId);
         setTickets(tkts);
         const rcpts = await api.getReceipts(undefined);
-        setReceipts(rcpts.filter(r => r.instance_id === instId));
+        const tktIds = new Set(tkts.map(t => t.id));
+        setReceipts(rcpts.filter(r => tktIds.has(r.ticket_id)));
 
         if (inst.workflow_version_id) {
           const ver = await api.getVersionById(inst.workflow_version_id);
@@ -245,7 +246,7 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
 
   const handleOpenAdvance = (tkt: Ticket) => {
     setAdvanceTicket(tkt);
-    const task = tasks.find(t => t.id === tkt.task_id);
+    const task = tasks.find(t => t.id === tkt.node_task_id);
     if (task?.outcomes && task.outcomes.length > 0) {
       setSelectedOutcomeId(task.outcomes[0].id);
     } else {
@@ -276,7 +277,7 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
     ? instances.filter(i => i.status === statusFilter)
     : instances;
 
-  const currentTaskForAdvance = advanceTicket ? tasks.find(t => t.id === advanceTicket.task_id) : null;
+  const currentTaskForAdvance = advanceTicket ? tasks.find(t => t.id === advanceTicket.node_task_id) : null;
 
   return (
     <div className={`p-4 space-y-4 max-w-[1600px] mx-auto font-sans min-h-full ${styles.bg}`}>
@@ -688,10 +689,10 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
                         </span>
                       </div>
                       <div className="text-[10px] text-[#c9d1d9]">
-                        Task: <span className="font-semibold">{rcpt.task_name}</span> | Node: <span className="text-[#58a6ff]">{rcpt.node_name}</span>
+                        Task: <span className="font-semibold">{rcpt.task_name}</span> | Ticket: <span className="text-[#58a6ff]">{rcpt.ticket_id}</span>
                       </div>
                       <div className="text-[10px] text-[#8b949e]">
-                        Output Data: {JSON.stringify(rcpt.output_data)}
+                        Output: {rcpt.metadata ? JSON.stringify(rcpt.metadata) : `${rcpt.output_artifact_type}/${rcpt.output_artifact_id}`}
                       </div>
                     </div>
                   ))}

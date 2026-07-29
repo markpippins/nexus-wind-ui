@@ -92,8 +92,7 @@ export const INITIAL_WORKFLOWS: Workflow[] = [
     name: 'CI/CD Feature Pipeline',
     description: 'Standard end-to-end verification and deployment workflow for core platform features.',
     version_count: 2,
-    active_version_id: 'ver-102',
-    active_version_number: 2,
+    active_version: 2,
     created_at: '2026-07-22T08:00:00Z'
   },
   {
@@ -101,8 +100,7 @@ export const INITIAL_WORKFLOWS: Workflow[] = [
     name: 'Urgent Patch Dispatch',
     description: 'Fast-track security audit and hotfix verification graph.',
     version_count: 1,
-    active_version_id: 'ver-201',
-    active_version_number: 1,
+    active_version: 1,
     created_at: '2026-07-22T08:30:00Z'
   }
 ];
@@ -186,46 +184,52 @@ export const INITIAL_INSTANCES: Instance[] = [
 export const INITIAL_TICKETS: Ticket[] = [
   {
     id: 'tkt-801',
-    instance_id: 'inst-1001',
+    workflow_instance_id: 'inst-1001',
     workflow_version_id: 'ver-102',
     node_id: 'node-101',
-    task_id: 'task-1',
-    title_id: 'title-1',
+    node_task_id: 'task-1',
+    assigned_title_id: 'title-1',
     status: 'COMPLETED',
     node_name: 'code_implementation',
     task_name: 'Implement Code Changes',
     title_name: 'Core Lead Implementer',
     workflow_name: 'CI/CD Feature Pipeline',
+    input_artifact_type: 'workflow_start',
+    input_artifact_id: 'inst-1001',
     created_at: '2026-07-24T14:20:00Z',
     updated_at: '2026-07-24T14:22:00Z'
   },
   {
     id: 'tkt-802',
-    instance_id: 'inst-1001',
+    workflow_instance_id: 'inst-1001',
     workflow_version_id: 'ver-102',
     node_id: 'node-102',
-    task_id: 'task-2',
-    title_id: 'title-3',
+    node_task_id: 'task-2',
+    assigned_title_id: 'title-3',
     status: 'IN_PROGRESS',
     node_name: 'secops_scan',
     task_name: 'Run Security & AST Analysis',
     title_name: 'SecOps Inspector',
     workflow_name: 'CI/CD Feature Pipeline',
+    input_artifact_type: 'from_outcome',
+    input_artifact_id: 'tkt-801',
     created_at: '2026-07-24T14:22:00Z',
     updated_at: '2026-07-24T14:23:00Z'
   },
   {
     id: 'tkt-901',
-    instance_id: 'inst-1003',
+    workflow_instance_id: 'inst-1003',
     workflow_version_id: 'ver-201',
     node_id: 'node-201',
-    task_id: 'task-2',
-    title_id: 'title-3',
+    node_task_id: 'task-2',
+    assigned_title_id: 'title-3',
     status: 'PENDING',
     node_name: 'express_sec_check',
     task_name: 'Run Security & AST Analysis',
     title_name: 'SecOps Inspector',
     workflow_name: 'Urgent Patch Dispatch',
+    input_artifact_type: 'workflow_start',
+    input_artifact_id: 'inst-1003',
     created_at: '2026-07-24T12:00:00Z',
     updated_at: '2026-07-24T12:00:00Z'
   }
@@ -235,13 +239,15 @@ export const INITIAL_RECEIPTS: Receipt[] = [
   {
     id: 'rcpt-501',
     ticket_id: 'tkt-801',
-    instance_id: 'inst-1001',
+    ticket_task_id: 'task-1',
     outcome_id: 'out-1',
     outcome_code: 'build_passed',
     task_name: 'Implement Code Changes',
-    node_name: 'code_implementation',
-    output_data: { build_artifact: 'dist/bundle-v2.3.js', hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' },
-    created_at: '2026-07-24T14:22:00Z'
+    work_request_id: 'tkt-801',
+    output_artifact_type: 'build_artifact',
+    output_artifact_id: 'dist/bundle-v2.3.js',
+    completed_at: '2026-07-24T14:22:00Z',
+    metadata: { hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' }
   }
 ];
 

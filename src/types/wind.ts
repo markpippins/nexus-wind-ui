@@ -45,8 +45,7 @@ export interface Workflow {
   name: string;
   description?: string;
   version_count?: number;
-  active_version_id?: string;
-  active_version_number?: number;
+  active_version?: number;
   versions?: WorkflowVersion[];
   created_at: string;
 }
@@ -72,6 +71,7 @@ export interface WorkflowNode {
   task_input_spec?: Record<string, any>;
   x?: number;
   y?: number;
+  created_at?: string;
 }
 
 export interface WorkflowEdge {
@@ -84,6 +84,7 @@ export interface WorkflowEdge {
   from_node_name?: string;
   to_node_name?: string;
   outcome_code?: string;
+  created_at?: string;
 }
 
 export interface Instance {
@@ -100,16 +101,18 @@ export interface Instance {
 
 export interface Ticket {
   id: string;
-  instance_id: string;
+  workflow_instance_id: string;
   workflow_version_id: string;
   node_id: string;
-  task_id: string;
-  title_id: string;
+  node_task_id: string;
+  assigned_title_id: string;
   status: TicketStatus;
   node_name?: string;
   task_name?: string;
   title_name?: string;
   workflow_name?: string;
+  input_artifact_type?: string;
+  input_artifact_id?: string;
   created_at: string;
   updated_at: string;
 }
@@ -117,13 +120,15 @@ export interface Ticket {
 export interface Receipt {
   id: string;
   ticket_id: string;
-  instance_id: string;
+  ticket_task_id: string;
   outcome_id: string;
   outcome_code: string;
   task_name: string;
-  node_name?: string;
-  output_data?: Record<string, any>;
-  created_at: string;
+  work_request_id?: string;
+  output_artifact_type?: string;
+  output_artifact_id?: string;
+  completed_at: string;
+  metadata?: Record<string, any>;
 }
 
 export interface GraphValidationResult {

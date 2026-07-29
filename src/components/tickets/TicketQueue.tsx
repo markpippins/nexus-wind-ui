@@ -44,7 +44,7 @@ export const TicketQueue: React.FC<TicketQueueProps> = ({
 
   const filteredTickets = tickets.filter(t => {
     if (statusFilter && t.status !== statusFilter) return false;
-    if (titleFilter && t.title_id !== titleFilter) return false;
+    if (titleFilter && t.assigned_title_id !== titleFilter) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const match =
@@ -52,7 +52,7 @@ export const TicketQueue: React.FC<TicketQueueProps> = ({
         (t.node_name && t.node_name.toLowerCase().includes(q)) ||
         (t.task_name && t.task_name.toLowerCase().includes(q)) ||
         (t.title_name && t.title_name.toLowerCase().includes(q)) ||
-        (t.instance_id && t.instance_id.toLowerCase().includes(q));
+        (t.workflow_instance_id && t.workflow_instance_id.toLowerCase().includes(q));
       if (!match) return false;
     }
     return true;
@@ -168,10 +168,10 @@ export const TicketQueue: React.FC<TicketQueueProps> = ({
 
                   <td className={`${isCompact ? 'py-1' : 'py-2.5'} px-3 font-semibold`}>
                     <button
-                      onClick={() => onNavigateInstance(tkt.instance_id)}
+                      onClick={() => onNavigateInstance(tkt.workflow_instance_id)}
                       className="text-[#c9d1d9] hover:text-[#58a6ff] flex items-center underline decoration-[#30363d] underline-offset-2"
                     >
-                      {tkt.instance_id}
+                      {tkt.workflow_instance_id}
                       <ChevronRight className="w-3 h-3 ml-0.5 text-[#8b949e]" />
                     </button>
                   </td>
@@ -213,7 +213,7 @@ export const TicketQueue: React.FC<TicketQueueProps> = ({
 
                     {(tkt.status === 'PENDING' || tkt.status === 'IN_PROGRESS') && (
                       <button
-                        onClick={() => onNavigateInstance(tkt.instance_id)}
+                        onClick={() => onNavigateInstance(tkt.workflow_instance_id)}
                         className="px-2 py-0.5 rounded bg-[#1f6feb] hover:bg-[#388bfd] text-white font-bold text-[10px]"
                       >
                         ADVANCE

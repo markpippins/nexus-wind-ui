@@ -49,12 +49,12 @@ export const InstanceTaskTimeline: React.FC<InstanceTaskTimelineProps> = ({
     return version.nodes.map((node, index) => {
       // Find ticket status first
       const ticket = tickets.find(t => t.node_id === node.id || t.node_name === node.name);
-      // Find corresponding receipt by ticket_id, node_name or task_name
-      const receipt = receipts.find(r => (ticket && r.ticket_id === ticket.id) || r.node_name === node.name || r.task_name === node.task_name || r.task_name === node.name);
+      // Find corresponding receipt by ticket_id (receipts no longer carry node_name)
+      const receipt = ticket ? receipts.find(r => r.ticket_id === ticket.id) : undefined;
 
       let status: TimelineStep['status'] = 'NOT_STARTED';
       let outcomeCode = receipt?.outcome_code;
-      let timestamp = receipt?.created_at || ticket?.created_at;
+      let timestamp = receipt?.completed_at || ticket?.created_at;
 
       if (receipt) {
         if (receipt.outcome_code?.includes('FAIL') || receipt.outcome_code?.includes('ERROR') || receipt.outcome_code?.includes('REJECT')) {
@@ -77,7 +77,7 @@ export const InstanceTaskTimeline: React.FC<InstanceTaskTimelineProps> = ({
       // Infer realistic error message if failed
       let errorMessage = undefined;
       if (status === 'FAILED') {
-        errorMessage = receipt?.output_data?.error || `Node execution failed with code [${outcomeCode || 'SYSTEM_FAILURE'}]`;
+        errorMessage = receipt?.metadata?.error || `Node execution failed with code [${outcomeCode || 'SYSTEM_FAILURE'}]`;
       }
 
       return {
@@ -90,7 +90,7 @@ export const InstanceTaskTimeline: React.FC<InstanceTaskTimelineProps> = ({
         ticket,
         timestamp,
         outcomeCode,
-        outputData: receipt?.output_data,
+        outputData: receipt?.metadata,
         errorMessage
       };
     });
