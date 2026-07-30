@@ -26,6 +26,7 @@ interface InstanceMonitorProps {
   themeMode?: ThemeMode;
   onRefresh: () => void;
   initialSelectedInstanceId?: string;
+  initialStatusFilter?: string;
 }
 
 export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
@@ -34,7 +35,8 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
   isDark = true,
   themeMode = 'dark' as ThemeMode,
   onRefresh,
-  initialSelectedInstanceId
+  initialSelectedInstanceId,
+  initialStatusFilter
 }) => {
   const styles = getThemeStyles(themeMode);
   const [selectedHeatmapDay, setSelectedHeatmapDay] = useState<HeatmapDay | null>(null);
@@ -47,7 +49,7 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
   const [receipts, setReceipts] = useState<Receipt[]>([]);
   const [version, setVersion] = useState<WorkflowVersion | null>(null);
 
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>(initialStatusFilter || '');
 
   // Advance Ticket Modal
   const [advanceTicket, setAdvanceTicket] = useState<Ticket | null>(null);
@@ -153,6 +155,12 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
       setSelectedInstanceId(instances[0].id);
     }
   }, [instances, initialSelectedInstanceId]);
+
+  useEffect(() => {
+    if (initialStatusFilter !== undefined) {
+      setStatusFilter(initialStatusFilter);
+    }
+  }, [initialStatusFilter]);
 
   useEffect(() => {
     if (selectedInstanceId) {

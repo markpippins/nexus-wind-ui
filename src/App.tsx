@@ -40,6 +40,17 @@ export default function App() {
 
   // Navigation Deep Links
   const [selectedInstanceIdForMonitor, setSelectedInstanceIdForMonitor] = useState<string>('');
+  const [statusFilterForMonitor, setStatusFilterForMonitor] = useState<string>('');
+
+  const handleNavigateTabWithFilter = (tab: ActiveTab, statusFilter?: string, instanceId?: string) => {
+    if (statusFilter !== undefined) {
+      setStatusFilterForMonitor(statusFilter);
+    }
+    if (instanceId) {
+      setSelectedInstanceIdForMonitor(instanceId);
+    }
+    setActiveTab(tab);
+  };
 
   // Toast Notifications State
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -253,7 +264,7 @@ export default function App() {
               receipts={receipts}
               isDark={isDark}
               themeMode={themeMode}
-              onNavigateTab={(tab) => setActiveTab(tab)}
+              onNavigateTab={handleNavigateTabWithFilter}
               onQuickStartInstance={handleQuickStartInstance}
             />
           )}
@@ -269,6 +280,7 @@ export default function App() {
             <WorkflowManager
               workflows={workflows}
               tasks={tasks}
+              instances={instances}
               isDark={isDark}
               onRefresh={loadAllData}
               onStartInstance={handleQuickStartInstance}
@@ -283,6 +295,7 @@ export default function App() {
               themeMode={themeMode}
               onRefresh={loadAllData}
               initialSelectedInstanceId={selectedInstanceIdForMonitor}
+              initialStatusFilter={statusFilterForMonitor}
             />
           )}
 

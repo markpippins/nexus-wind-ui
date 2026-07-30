@@ -1,17 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   GitMerge, Plus, Play, CheckCircle2, ShieldCheck, AlertTriangle,
-  X, Trash2, ArrowRight, Zap, Layers, RefreshCw, Eye, Edit3, Code2
+  X, Trash2, ArrowRight, Zap, Layers, RefreshCw, Eye, Edit3, Code2,
+  ListTree, ChevronDown, ChevronRight, Folder, FolderOpen, GitBranch,
+  Search, Filter, Maximize2, Minimize2, Sparkles, Terminal, FileCode, Check
 } from 'lucide-react';
 import {
   Workflow, WorkflowVersion, WorkflowNode, WorkflowEdge, Task, Outcome,
-  GraphValidationResult, StructuralValidationResult
+  GraphValidationResult, StructuralValidationResult, Instance
 } from '../../types/wind';
 import { api } from '../../services/api';
 
 interface WorkflowManagerProps {
   workflows: Workflow[];
   tasks: Task[];
+  instances?: Instance[];
   isDark: boolean;
   onRefresh: () => void;
   onStartInstance: (versionId: string) => void;
@@ -20,6 +23,7 @@ interface WorkflowManagerProps {
 export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
   workflows,
   tasks,
+  instances: propInstances,
   isDark,
   onRefresh,
   onStartInstance
@@ -49,6 +53,104 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
   const [toNodeId, setToNodeId] = useState('');
 
   const [selectedNode, setSelectedNode] = useState<WorkflowNode | null>(null);
+
+  // Hierarchical Tree View Sidebar States
+  const [treeSearchTerm, setTreeSearchTerm] = useState('');
+  const [filterActiveOnly, setFilterActiveOnly] = useState(false);
+  const [expandedTreeNodes, setExpandedTreeNodes] = useState<Record<string, boolean>>({});
+  const [versionsMap, setVersionsMap] = useState<Record<string, WorkflowVersion[]>>({});
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  const [instances, setInstances] = useState<Instance[]>(propInstances || []);
+
+  const loadHistoricalInstances = async () => {
+    try {
+      const instList = await api.getInstances();
+      setInstances(instList || []);
+    } catch (e) {
+      console.error('Failed to load historical instances for badge:', e);
+    }
+  };
+
+  useEffect(() => {
+    if (propInstances) {
+      setInstances(propInstances);
+    } else {
+      loadHistoricalInstances();
+    }
+  }, [propInstances, workflows]);
+
+  const { countsByWfId, maxExecutionCount } = useMemo(() => {
+    const counts: Record<string, number> = {};
+    let maxCount = 0;
+    workflows.forEach(wf => {
+      const wfVers = versionsMap[wf.id] || wf.versions || [];
+      const verIds = new Set(wfVers.map(v => v.id));
+      const count = instances.filter(inst => {
+        if (inst.workflow_name && inst.workflow_name === wf.name) return true;
+        return verIds.has(inst.workflow_version_id);
+      }).length;
+      counts[wf.id] = count;
+      if (count > maxCount) {
+        maxCount = count;
+      }
+    });
+    return { countsByWfId: counts, maxExecutionCount: maxCount };
+  }, [workflows, instances, versionsMap]);
+
+  const refreshVersionsMap = async () => {
+    const map: Record<string, WorkflowVersion[]> = {};
+    for (const wf of workflows) {
+      try {
+        const vers = await api.getVersions(wf.id);
+        map[wf.id] = vers;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    setVersionsMap(map);
+    loadHistoricalInstances();
+  };
+
+  useEffect(() => {
+    if (workflows.length > 0) {
+      refreshVersionsMap();
+    }
+  }, [workflows]);
+
+  useEffect(() => {
+    if (selectedWorkflowId) {
+      setExpandedTreeNodes(prev => ({
+        ...prev,
+        [`wf-${selectedWorkflowId}`]: true,
+        [`ver-${selectedVersionId}`]: true
+      }));
+    }
+  }, [selectedWorkflowId, selectedVersionId]);
+
+  const toggleTreeNode = (key: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setExpandedTreeNodes(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const expandAllTreeNodes = () => {
+    const newExpanded: Record<string, boolean> = {};
+    workflows.forEach(wf => {
+      newExpanded[`wf-${wf.id}`] = true;
+      const vers = versionsMap[wf.id] || [];
+      vers.forEach(v => {
+        newExpanded[`ver-${v.id}`] = true;
+        v.nodes?.forEach(n => {
+          newExpanded[`node-${n.id}`] = true;
+        });
+      });
+    });
+    setExpandedTreeNodes(newExpanded);
+  };
+
+  const collapseAllTreeNodes = () => {
+    setExpandedTreeNodes({});
+  };
 
   useEffect(() => {
     if (workflows.length > 0 && !selectedWorkflowId) {
@@ -108,6 +210,7 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
       setWfDesc('');
       onRefresh();
       setSelectedWorkflowId(created.id);
+      refreshVersionsMap();
     } catch (err: any) {
       alert(err.message || 'Failed to create workflow');
     }
@@ -119,6 +222,7 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
       const newVer = await api.createVersion({ workflow_id: selectedWorkflowId });
       onRefresh();
       setSelectedVersionId(newVer.id);
+      refreshVersionsMap();
     } catch (err: any) {
       alert(err.message || 'Failed to create version');
     }
@@ -129,6 +233,7 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
       await api.activateVersion(verId);
       onRefresh();
       loadVersionDetails(verId);
+      refreshVersionsMap();
     } catch (err: any) {
       alert(err.message || 'Failed to activate version');
     }
@@ -158,6 +263,7 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
       setIsEntrypoint(false);
       setIsTerminal(false);
       loadVersionDetails(selectedVersionId);
+      refreshVersionsMap();
     } catch (err: any) {
       alert(err.message || 'Failed to create node');
     }
@@ -180,6 +286,7 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
       setOutcomeId('');
       setToNodeId('');
       loadVersionDetails(selectedVersionId);
+      refreshVersionsMap();
     } catch (err: any) {
       alert(err.message || 'Failed to create edge');
     }
@@ -191,6 +298,7 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
       await api.deleteNode(nodeId);
       if (selectedNode?.id === nodeId) setSelectedNode(null);
       loadVersionDetails(selectedVersionId);
+      refreshVersionsMap();
     } catch (err: any) {
       alert(err.message || 'Failed to delete node');
     }
@@ -200,6 +308,7 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
     try {
       await api.deleteEdge(edgeId);
       loadVersionDetails(selectedVersionId);
+      refreshVersionsMap();
     } catch (err: any) {
       alert(err.message || 'Failed to delete edge');
     }
@@ -217,28 +326,46 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
             <GitMerge className="w-4 h-4" />
           </div>
           <div>
-            <h1 className="text-xs font-bold font-mono text-[#c9d1d9] uppercase">
-              WORKFLOW GRAPH & DAG EDITOR
+            <h1 className="text-xs font-bold font-mono text-[#c9d1d9] uppercase flex items-center space-x-2">
+              <span>WORKFLOW GRAPH & DAG EDITOR</span>
+              <span className="text-[10px] bg-purple-900/50 text-purple-300 px-2 py-0.5 rounded font-mono border border-purple-800">
+                TREE EXPLORER
+              </span>
             </h1>
             <p className="text-[11px] text-[#8b949e]">
-              Define state machines, task bindings, outcome routes and graph validation rules
+              Define state machines, task bindings, outcome routes and graph validation rules with hierarchical tree navigation
             </p>
           </div>
         </div>
 
         {/* Workflow & Version Selectors */}
         <div className="flex items-center space-x-2.5 w-full md:w-auto">
+          <button
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className={`px-2.5 py-1 rounded text-xs font-mono font-bold border transition-all flex items-center space-x-1.5 ${
+              isSidebarOpen ? 'bg-purple-900/40 border-purple-600 text-purple-300' : 'bg-[#0d1117] border-[#30363d] text-[#8b949e] hover:text-white'
+            }`}
+            title="Toggle Hierarchical Tree Sidebar"
+          >
+            <ListTree className="w-3.5 h-3.5" />
+            <span>{isSidebarOpen ? 'HIDE TREE' : 'SHOW TREE'}</span>
+          </button>
+
           {/* Workflow Picker */}
           <select
             value={selectedWorkflowId}
             onChange={(e) => setSelectedWorkflowId(e.target.value)}
             className="px-2.5 py-1 rounded text-xs font-mono border border-[#30363d] bg-[#0d1117] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff]"
           >
-            {workflows.map(wf => (
-              <option key={wf.id} value={wf.id}>
-                {wf.name} ({wf.version_count || 1} vers)
-              </option>
-            ))}
+            {workflows.map(wf => {
+              const execCount = countsByWfId[wf.id] || 0;
+              const isMostExecuted = maxExecutionCount > 0 && execCount === maxExecutionCount;
+              return (
+                <option key={wf.id} value={wf.id}>
+                  {wf.name} ({wf.version_count || 1} vers) {isMostExecuted ? `★ Most Executed (${execCount} runs)` : execCount > 0 ? `(${execCount} runs)` : ''}
+                </option>
+              );
+            })}
           </select>
 
           {/* New Workflow Button */}
@@ -252,86 +379,435 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
         </div>
       </div>
 
-      {/* Version Tab Bar & Action Controls */}
-      {activeWorkflow && (
-        <div className="p-2.5 rounded border border-[#30363d] bg-[#161b22] flex flex-wrap items-center justify-between gap-2.5">
-          {/* Version Pills */}
-          <div className="flex items-center space-x-2 font-mono text-xs overflow-x-auto">
-            <span className="text-[#8b949e] font-bold text-[10px] uppercase mr-1">VERSIONS:</span>
-            {activeWorkflow.versions?.map((ver) => (
-              <button
-                key={ver.id}
-                onClick={() => setSelectedVersionId(ver.id)}
-                className={`px-2.5 py-0.5 rounded text-[11px] transition-all flex items-center space-x-1.5 ${
-                  selectedVersionId === ver.id
-                    ? 'bg-[#1f2937] text-white font-bold border-l-2 border-blue-500'
-                    : 'bg-[#0d1117] text-[#8b949e] hover:text-white border border-[#30363d]'
-                }`}
-              >
-                <span>v{ver.version_number}</span>
-                {ver.is_active && (
-                  <span className="px-1 py-0.2 text-[9px] bg-green-900/40 text-green-300 rounded font-bold border border-green-800">
-                    ACTIVE
-                  </span>
-                )}
-              </button>
-            ))}
-
-            <button
-              onClick={handleCreateVersion}
-              className="px-2 py-0.5 rounded bg-[#0d1117] text-[#8b949e] hover:text-white border border-[#30363d] text-[10px]"
-              title="Auto-increment version number"
-            >
-              + New Version
-            </button>
-          </div>
-
-          {/* Controls */}
-          {selectedVersion && (
-            <div className="flex items-center space-x-2">
-              {!selectedVersion.is_active && (
+      {/* Main Split View: Tree Sidebar + Main Canvas */}
+      <div className="flex flex-col lg:flex-row gap-4 items-start">
+        {/* Interactive Hierarchical Tree View Sidebar */}
+        <div className={`${isSidebarOpen ? 'w-full lg:w-80 shrink-0' : 'hidden'} transition-all duration-300`}>
+          <div className="p-3 rounded border border-[#30363d] bg-[#161b22] font-mono text-xs space-y-3 shadow-md">
+            {/* Sidebar Header */}
+            <div className="flex items-center justify-between border-b border-[#30363d] pb-2">
+              <div className="flex items-center space-x-2">
+                <ListTree className="w-4 h-4 text-purple-400" />
+                <span className="font-bold text-[#c9d1d9] text-xs uppercase tracking-wide">
+                  WORKFLOW TREE
+                </span>
+              </div>
+              <div className="flex items-center space-x-1">
                 <button
-                  onClick={() => handleActivateVersion(selectedVersion.id)}
-                  className="px-2.5 py-1 rounded bg-[#238636] hover:bg-[#2ea043] text-white text-[11px] font-bold font-mono transition-all flex items-center space-x-1"
+                  onClick={() => setShowCreateWfModal(true)}
+                  className="p-1 text-[#8b949e] hover:text-purple-300 rounded hover:bg-[#21262d] transition-colors"
+                  title="Create New Workflow"
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>ACTIVATE VERSION</span>
+                  <Plus className="w-3.5 h-3.5" />
                 </button>
+                <button
+                  onClick={() => setIsSidebarOpen(false)}
+                  className="p-1 text-[#8b949e] hover:text-white rounded hover:bg-[#21262d] transition-colors"
+                  title="Collapse Sidebar"
+                >
+                  <Minimize2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Search & Filter Controls Bar */}
+            <div className="space-y-2">
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-[#8b949e]" />
+                <input
+                  type="text"
+                  placeholder="Filter workflows, versions & tasks..."
+                  value={treeSearchTerm}
+                  onChange={(e) => setTreeSearchTerm(e.target.value)}
+                  className="w-full pl-8 pr-7 py-1.5 rounded text-[11px] bg-[#0d1117] border border-[#30363d] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff] placeholder-[#484f58]"
+                />
+                {treeSearchTerm && (
+                  <button
+                    onClick={() => setTreeSearchTerm('')}
+                    className="absolute right-2 top-2 text-[#8b949e] hover:text-white"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between text-[10px] text-[#8b949e] pt-1 border-b border-[#30363d] pb-1.5">
+                <label className="flex items-center space-x-1.5 cursor-pointer hover:text-[#c9d1d9]">
+                  <input
+                    type="checkbox"
+                    checked={filterActiveOnly}
+                    onChange={(e) => setFilterActiveOnly(e.target.checked)}
+                    className="accent-purple-500 rounded"
+                  />
+                  <span>Active Only</span>
+                </label>
+
+                <div className="flex items-center space-x-2 font-mono">
+                  <button
+                    onClick={expandAllTreeNodes}
+                    className="hover:text-purple-400 transition-colors"
+                    title="Expand all tree items"
+                  >
+                    Expand All
+                  </button>
+                  <span>|</span>
+                  <button
+                    onClick={collapseAllTreeNodes}
+                    className="hover:text-amber-400 transition-colors"
+                    title="Collapse all tree items"
+                  >
+                    Collapse
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Tree View Hierarchy Content */}
+            <div className="space-y-1.5 max-h-[640px] overflow-y-auto pr-1">
+              {workflows.filter(wf => {
+                if (filterActiveOnly) {
+                  const vers = versionsMap[wf.id] || [];
+                  if (!vers.some(v => v.is_active)) return false;
+                }
+                if (!treeSearchTerm.trim()) return true;
+                const term = treeSearchTerm.toLowerCase();
+                if (wf.name.toLowerCase().includes(term)) return true;
+                const vers = versionsMap[wf.id] || [];
+                return vers.some(v =>
+                  v.nodes?.some(n => n.name.toLowerCase().includes(term) || n.task_name.toLowerCase().includes(term))
+                );
+              }).map(wf => {
+                const isWfSelected = selectedWorkflowId === wf.id;
+                const isWfExpanded = !!expandedTreeNodes[`wf-${wf.id}`];
+                const wfVersions = versionsMap[wf.id] || wf.versions || [];
+                const activeVer = wfVersions.find(v => v.is_active);
+                const execCount = countsByWfId[wf.id] || 0;
+                const isMostExecuted = maxExecutionCount > 0 && execCount === maxExecutionCount;
+
+                return (
+                  <div key={wf.id} className="rounded border border-[#21262d] bg-[#0d1117] overflow-hidden">
+                    {/* Level 1: Workflow Item */}
+                    <div
+                      onClick={() => {
+                        setSelectedWorkflowId(wf.id);
+                        toggleTreeNode(`wf-${wf.id}`);
+                      }}
+                      className={`p-2 flex items-center justify-between cursor-pointer transition-colors ${
+                        isWfSelected ? 'bg-purple-950/40 text-white font-bold border-l-2 border-purple-500' : 'hover:bg-[#161b22] text-[#c9d1d9]'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2 min-w-0">
+                        <button
+                          onClick={(e) => toggleTreeNode(`wf-${wf.id}`, e)}
+                          className="text-[#8b949e] hover:text-white shrink-0"
+                        >
+                          {isWfExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+                        </button>
+                        {isWfExpanded ? (
+                          <FolderOpen className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                        ) : (
+                          <Folder className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                        )}
+                        <span className="truncate text-xs">{wf.name}</span>
+                      </div>
+
+                      <div className="flex items-center space-x-1.5 shrink-0 text-[9px]">
+                        {isMostExecuted ? (
+                          <span
+                            className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/50 font-bold flex items-center space-x-1 shadow-sm"
+                            title={`Most Executed Workflow based on historical instance data (${execCount} runs)`}
+                          >
+                            <Sparkles className="w-2.5 h-2.5 text-amber-400 shrink-0" />
+                            <span>Most Executed</span>
+                            <span className="text-[8px] bg-amber-950/80 px-1 py-0.2 rounded border border-amber-700/60 font-mono">
+                              {execCount}
+                            </span>
+                          </span>
+                        ) : execCount > 0 ? (
+                          <span
+                            className="px-1.5 py-0.2 rounded bg-[#21262d] text-[#8b949e] border border-[#30363d] font-mono text-[9px]"
+                            title={`Historical executions (${execCount} runs)`}
+                          >
+                            {execCount} {execCount === 1 ? 'run' : 'runs'}
+                          </span>
+                        ) : null}
+
+                        {activeVer ? (
+                          <span className="px-1.5 py-0.2 rounded bg-green-900/40 text-green-300 border border-green-800 font-extrabold">
+                            v{activeVer.version_number}
+                          </span>
+                        ) : (
+                          <span className="px-1.5 py-0.2 rounded bg-slate-800 text-[#8b949e]">
+                            {wfVersions.length} v
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Level 2: Nested Versions */}
+                    {isWfExpanded && (
+                      <div className="pl-4 pr-1 py-1 space-y-1 bg-[#161b22]/60 border-t border-[#21262d]">
+                        {wfVersions.map(ver => {
+                          const isVerSelected = selectedVersionId === ver.id;
+                          const isVerExpanded = !!expandedTreeNodes[`ver-${ver.id}`];
+
+                          return (
+                            <div key={ver.id} className="space-y-1">
+                              {/* Version Item Header */}
+                              <div
+                                onClick={() => {
+                                  setSelectedWorkflowId(wf.id);
+                                  setSelectedVersionId(ver.id);
+                                  toggleTreeNode(`ver-${ver.id}`);
+                                }}
+                                className={`p-1.5 rounded flex items-center justify-between cursor-pointer text-[11px] transition-colors ${
+                                  isVerSelected
+                                    ? 'bg-[#1f2937] text-cyan-300 font-bold border-l-2 border-cyan-400'
+                                    : 'hover:bg-[#0d1117] text-[#8b949e] hover:text-[#c9d1d9]'
+                                }`}
+                              >
+                                <div className="flex items-center space-x-1.5 min-w-0">
+                                  <button
+                                    onClick={(e) => toggleTreeNode(`ver-${ver.id}`, e)}
+                                    className="text-[#8b949e] hover:text-white shrink-0"
+                                  >
+                                    {isVerExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                                  </button>
+                                  <GitBranch className="w-3 h-3 text-cyan-400 shrink-0" />
+                                  <span className="font-mono">v{ver.version_number}</span>
+                                  {ver.is_active && (
+                                    <span className="text-[8px] bg-green-900/50 text-green-300 px-1 py-0.2 rounded font-extrabold border border-green-800/80">
+                                      ACTIVE
+                                    </span>
+                                  )}
+                                </div>
+
+                                <span className="text-[9px] text-[#8b949e] font-mono">
+                                  {ver.nodes?.length || 0} nodes
+                                </span>
+                              </div>
+
+                              {/* Level 3: Nested Nodes / Bound Tasks */}
+                              {isVerExpanded && ver.nodes && (
+                                <div className="pl-4 space-y-1 border-l border-slate-700/60 ml-2.5 my-1">
+                                  {ver.nodes.map(node => {
+                                    const isNodeSelected = selectedNode?.id === node.id;
+                                    const isNodeExpanded = !!expandedTreeNodes[`node-${node.id}`];
+                                    const outgoing = ver.edges?.filter(e => e.from_node_id === node.id) || [];
+
+                                    return (
+                                      <div key={node.id} className="space-y-0.5">
+                                        {/* Node Header Row */}
+                                        <div
+                                          onClick={() => {
+                                            setSelectedWorkflowId(wf.id);
+                                            setSelectedVersionId(ver.id);
+                                            setSelectedNode(node);
+                                            toggleTreeNode(`node-${node.id}`);
+                                          }}
+                                          className={`p-1.5 rounded flex items-center justify-between cursor-pointer text-[10px] transition-all ${
+                                            isNodeSelected
+                                              ? 'bg-amber-950/40 text-amber-300 font-bold border-l-2 border-amber-400'
+                                              : 'hover:bg-[#0d1117] text-[#c9d1d9]'
+                                          }`}
+                                        >
+                                          <div className="flex items-center space-x-1.5 min-w-0">
+                                            {outgoing.length > 0 && (
+                                              <button
+                                                onClick={(e) => toggleTreeNode(`node-${node.id}`, e)}
+                                                className="text-[#8b949e] hover:text-white shrink-0"
+                                              >
+                                                {isNodeExpanded ? <ChevronDown className="w-2.5 h-2.5" /> : <ChevronRight className="w-2.5 h-2.5" />}
+                                              </button>
+                                            )}
+                                            <Zap className="w-3 h-3 text-amber-400 shrink-0" />
+                                            <span className="truncate font-semibold">{node.name}</span>
+                                          </div>
+
+                                          <span className={`text-[8px] font-mono px-1 py-0.2 rounded ${
+                                            node.is_entrypoint ? 'bg-amber-900/40 text-amber-300 border border-amber-800' :
+                                            node.is_terminal ? 'bg-purple-900/40 text-purple-300 border border-purple-800' :
+                                            'bg-blue-900/40 text-blue-300 border border-blue-800'
+                                          }`}>
+                                            {node.is_entrypoint ? 'ENTRY' : node.is_terminal ? 'END' : 'STEP'}
+                                          </span>
+                                        </div>
+
+                                        {/* Subtask Info */}
+                                        <div className="pl-5 text-[9px] text-[#8b949e] truncate flex items-center space-x-1">
+                                          <span>task:</span>
+                                          <span className="text-[#58a6ff] font-medium truncate">{node.task_name}</span>
+                                        </div>
+
+                                        {/* Level 4: Outcome Task Routes / Dependencies */}
+                                        {isNodeExpanded && outgoing.length > 0 && (
+                                          <div className="pl-5 pr-1 py-0.5 space-y-0.5 border-l border-amber-500/30 ml-2">
+                                            {outgoing.map(edge => (
+                                              <div
+                                                key={edge.id}
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  setSelectedWorkflowId(wf.id);
+                                                  setSelectedVersionId(ver.id);
+                                                  const targetNode = ver.nodes?.find(n => n.id === edge.to_node_id);
+                                                  if (targetNode) setSelectedNode(targetNode);
+                                                }}
+                                                className="p-1 rounded bg-[#0d1117] border border-[#30363d] hover:border-[#58a6ff] cursor-pointer flex items-center justify-between text-[9px] font-mono group"
+                                              >
+                                                <span className="text-green-400 font-bold">{edge.outcome_code}</span>
+                                                <ArrowRight className="w-2.5 h-2.5 text-[#8b949e] group-hover:text-white" />
+                                                <span className="text-[#58a6ff] truncate max-w-[90px]">{edge.to_node_name}</span>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+
+                                  {(!ver.nodes || ver.nodes.length === 0) && (
+                                    <div className="text-[10px] text-[#8b949e] italic pl-2 py-0.5">
+                                      No nodes in version
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+
+                        {wfVersions.length === 0 && (
+                          <div className="text-[10px] text-[#8b949e] italic pl-2 py-0.5">
+                            No versions available
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {workflows.length === 0 && (
+                <div className="text-center py-6 text-[#8b949e] text-xs">
+                  No workflows found.
+                </div>
               )}
+            </div>
+          </div>
+        </div>
 
-              <button
-                onClick={() => setShowAddNodeModal(true)}
-                className="px-2.5 py-1 rounded bg-[#0d1117] hover:bg-[#21262d] text-white text-[11px] font-bold font-mono border border-[#30363d] transition-all flex items-center space-x-1 shadow-sm"
-              >
-                <Plus className="w-3.5 h-3.5 text-[#58a6ff]" />
-                <span>ADD NODE</span>
-              </button>
+        {/* Right Main Area: Versions, Integrity Checks & DAG Visual Canvas */}
+        <div className="flex-1 w-full space-y-4">
+          {/* Version Tab Bar & Action Controls */}
+          {activeWorkflow && (
+            <div className="p-2.5 rounded border border-[#30363d] bg-[#161b22] flex flex-wrap items-center justify-between gap-2.5">
+              {/* Version Pills */}
+              <div className="flex items-center space-x-2 font-mono text-xs overflow-x-auto">
+                <span className="text-[#8b949e] font-bold text-[10px] uppercase mr-1 flex items-center space-x-1.5">
+                  <span>VERSIONS:</span>
+                  {(() => {
+                    const execCount = countsByWfId[activeWorkflow.id] || 0;
+                    const isMostExecuted = maxExecutionCount > 0 && execCount === maxExecutionCount;
+                    if (isMostExecuted) {
+                      return (
+                        <span
+                          className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/50 font-bold flex items-center space-x-1 shadow-sm normal-case text-[10px]"
+                          title={`Most Executed Workflow based on historical instance data (${execCount} runs)`}
+                        >
+                          <Sparkles className="w-2.5 h-2.5 text-amber-400 shrink-0" />
+                          <span>Most Executed</span>
+                          <span className="text-[8px] bg-amber-950/80 px-1 py-0.2 rounded border border-amber-700/60 font-mono">
+                            {execCount}
+                          </span>
+                        </span>
+                      );
+                    } else if (execCount > 0) {
+                      return (
+                        <span
+                          className="px-1.5 py-0.2 rounded bg-[#21262d] text-[#8b949e] border border-[#30363d] font-mono text-[9px] normal-case"
+                          title={`Historical executions (${execCount} runs)`}
+                        >
+                          {execCount} {execCount === 1 ? 'run' : 'runs'}
+                        </span>
+                      );
+                    }
+                    return null;
+                  })()}
+                </span>
+                {activeWorkflow.versions?.map((ver) => (
+                  <button
+                    key={ver.id}
+                    onClick={() => setSelectedVersionId(ver.id)}
+                    className={`px-2.5 py-0.5 rounded text-[11px] transition-all flex items-center space-x-1.5 ${
+                      selectedVersionId === ver.id
+                        ? 'bg-[#1f2937] text-white font-bold border-l-2 border-blue-500'
+                        : 'bg-[#0d1117] text-[#8b949e] hover:text-white border border-[#30363d]'
+                    }`}
+                  >
+                    <span>v{ver.version_number}</span>
+                    {ver.is_active && (
+                      <span className="px-1 py-0.2 text-[9px] bg-green-900/40 text-green-300 rounded font-bold border border-green-800">
+                        ACTIVE
+                      </span>
+                    )}
+                  </button>
+                ))}
 
-              <button
-                onClick={() => {
-                  if ((selectedVersion.nodes?.length || 0) < 2) {
-                    alert('Need at least 2 nodes to draw an edge!');
-                    return;
-                  }
-                  setShowAddEdgeModal(true);
-                }}
-                className="px-2.5 py-1 rounded bg-[#0d1117] hover:bg-[#21262d] text-white text-[11px] font-bold font-mono border border-[#30363d] transition-all flex items-center space-x-1 shadow-sm"
-              >
-                <ArrowRight className="w-3.5 h-3.5 text-purple-400" />
-                <span>ADD EDGE</span>
-              </button>
+                <button
+                  onClick={handleCreateVersion}
+                  className="px-2 py-0.5 rounded bg-[#0d1117] text-[#8b949e] hover:text-white border border-[#30363d] text-[10px]"
+                  title="Auto-increment version number"
+                >
+                  + New Version
+                </button>
+              </div>
 
-              <button
-                onClick={() => onStartInstance(selectedVersion.id)}
-                className="px-2.5 py-1 rounded bg-[#238636] hover:bg-[#2ea043] text-white text-[11px] font-bold font-mono transition-all flex items-center space-x-1 shadow-sm"
-              >
-                <Play className="w-3.5 h-3.5 fill-current" />
-                <span>START INSTANCE</span>
-              </button>
+              {/* Controls */}
+              {selectedVersion && (
+                <div className="flex items-center space-x-2">
+                  {!selectedVersion.is_active && (
+                    <button
+                      onClick={() => handleActivateVersion(selectedVersion.id)}
+                      className="px-2.5 py-1 rounded bg-[#238636] hover:bg-[#2ea043] text-white text-[11px] font-bold font-mono transition-all flex items-center space-x-1"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>ACTIVATE VERSION</span>
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => setShowAddNodeModal(true)}
+                    className="px-2.5 py-1 rounded bg-[#0d1117] hover:bg-[#21262d] text-white text-[11px] font-bold font-mono border border-[#30363d] transition-all flex items-center space-x-1 shadow-sm"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-[#58a6ff]" />
+                    <span>ADD NODE</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      if ((selectedVersion.nodes?.length || 0) < 2) {
+                        alert('Need at least 2 nodes to draw an edge!');
+                        return;
+                      }
+                      setShowAddEdgeModal(true);
+                    }}
+                    className="px-2.5 py-1 rounded bg-[#0d1117] hover:bg-[#21262d] text-white text-[11px] font-bold font-mono border border-[#30363d] transition-all flex items-center space-x-1 shadow-sm"
+                  >
+                    <ArrowRight className="w-3.5 h-3.5 text-purple-400" />
+                    <span>ADD EDGE</span>
+                  </button>
+
+                  <button
+                    onClick={() => onStartInstance(selectedVersion.id)}
+                    className="px-2.5 py-1 rounded bg-[#238636] hover:bg-[#2ea043] text-white text-[11px] font-bold font-mono transition-all flex items-center space-x-1 shadow-sm"
+                  >
+                    <Play className="w-3.5 h-3.5 fill-current" />
+                    <span>START INSTANCE</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
-        </div>
-      )}
 
       {/* Graph Integrity & Structural Validation Alerts */}
       {selectedVersion && (validationResult || structuralResult) && (
@@ -536,10 +1012,12 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
           </div>
         </div>
       ) : (
-        <div className="p-12 text-center text-[#8b949e] font-mono text-xs">
+        <div className="p-12 text-center text-[#8b949e] font-mono text-xs flex-1 w-full bg-[#161b22] border border-[#30363d] rounded">
           Select a workflow above or create one to begin building graph nodes.
         </div>
       )}
+        </div>
+      </div>
 
       {/* CREATE WORKFLOW MODAL */}
       {showCreateWfModal && (
