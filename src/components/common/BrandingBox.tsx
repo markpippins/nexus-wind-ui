@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
   Terminal, Sun, Moon, Cpu, Server, Database, RefreshCw, Activity,
-  CheckCircle2, AlertCircle, Play, ChevronRight, Copy, Check, Shield
+  CheckCircle2, AlertCircle, Play, ChevronRight, Copy, Check, Shield,
+  Sparkles, LayoutGrid, Eye, Palette
 } from 'lucide-react';
 import { api, ApiMode } from '../../services/api';
-import { ThemeMode } from '../../types/theme';
+import { ThemeMode, getNextThemeMode } from '../../types/theme';
 
 interface BrandingBoxProps {
   currentPath: string;
@@ -188,8 +189,20 @@ export const BrandingBox: React.FC<BrandingBoxProps> = ({
           DEPLOY
         </button>
 
-        {/* Theme Mode Selector (Light / Dark / Steel) */}
-        <div className="flex items-center bg-[#0d1117] p-0.5 rounded border border-[#30363d] text-[10px] font-mono">
+        {/* Style Cycling Button */}
+        <button
+          onClick={() => onChangeTheme(getNextThemeMode(themeMode))}
+          className="flex items-center space-x-1.5 px-2.5 py-1 bg-[#1f2937] hover:bg-[#374151] text-cyan-300 border border-cyan-500/50 hover:border-cyan-400 rounded text-[11px] font-bold font-mono transition-all shadow-sm group shrink-0"
+          title="Click to cycle visual styles: Dark -> Light -> Steel -> Modern Minimalist -> Bento Box -> High Contrast"
+        >
+          <Palette className="w-3.5 h-3.5 text-cyan-400 group-hover:rotate-45 transition-transform" />
+          <span className="text-[#8b949e] hidden md:inline">STYLE:</span>
+          <span className="text-white uppercase font-extrabold max-w-[110px] truncate">{themeMode}</span>
+          <RefreshCw className="w-3 h-3 text-cyan-400/80 ml-0.5" />
+        </button>
+
+        {/* Theme Mode Selector (Light / Dark / Steel / Modern Minimalist / Bento Box / High Contrast) */}
+        <div className="flex items-center bg-[#0d1117] p-0.5 rounded border border-[#30363d] text-[10px] font-mono shrink-0">
           <button
             onClick={() => onChangeTheme('light')}
             className={`px-1.5 py-0.5 rounded flex items-center space-x-1 transition-all ${
@@ -200,7 +213,7 @@ export const BrandingBox: React.FC<BrandingBoxProps> = ({
             title="Light Theme"
           >
             <Sun className="w-3 h-3" />
-            <span className="hidden md:inline">LIGHT</span>
+            <span className="hidden 2xl:inline">LIGHT</span>
           </button>
           <button
             onClick={() => onChangeTheme('dark')}
@@ -212,7 +225,7 @@ export const BrandingBox: React.FC<BrandingBoxProps> = ({
             title="Dark Theme"
           >
             <Moon className="w-3 h-3" />
-            <span className="hidden md:inline">DARK</span>
+            <span className="hidden 2xl:inline">DARK</span>
           </button>
           <button
             onClick={() => onChangeTheme('steel')}
@@ -224,7 +237,43 @@ export const BrandingBox: React.FC<BrandingBoxProps> = ({
             title="Steel Theme"
           >
             <Shield className="w-3 h-3" />
-            <span className="hidden md:inline">STEEL</span>
+            <span className="hidden 2xl:inline">STEEL</span>
+          </button>
+          <button
+            onClick={() => onChangeTheme('Modern Minimalist')}
+            className={`px-1.5 py-0.5 rounded flex items-center space-x-1 transition-all ${
+              themeMode === 'Modern Minimalist' || themeMode === 'modern-minimalist'
+                ? 'bg-indigo-600 text-white font-bold shadow-sm'
+                : 'text-[#8b949e] hover:text-white'
+            }`}
+            title="Modern Minimalist Theme"
+          >
+            <Sparkles className="w-3 h-3" />
+            <span className="hidden 2xl:inline">MODERN</span>
+          </button>
+          <button
+            onClick={() => onChangeTheme('Bento Box')}
+            className={`px-1.5 py-0.5 rounded flex items-center space-x-1 transition-all ${
+              themeMode === 'Bento Box' || themeMode === 'bento-box'
+                ? 'bg-purple-600 text-white font-bold shadow-sm'
+                : 'text-[#8b949e] hover:text-white'
+            }`}
+            title="Bento Box Theme"
+          >
+            <LayoutGrid className="w-3 h-3" />
+            <span className="hidden 2xl:inline">BENTO</span>
+          </button>
+          <button
+            onClick={() => onChangeTheme('High Contrast')}
+            className={`px-1.5 py-0.5 rounded flex items-center space-x-1 transition-all ${
+              themeMode === 'High Contrast' || themeMode === 'high-contrast'
+                ? 'bg-yellow-400 text-black font-extrabold shadow-sm'
+                : 'text-[#8b949e] hover:text-white'
+            }`}
+            title="High Contrast Theme"
+          >
+            <Eye className="w-3 h-3" />
+            <span className="hidden 2xl:inline">HI-CON</span>
           </button>
         </div>
       </div>
