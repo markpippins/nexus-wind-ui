@@ -1,22 +1,41 @@
 import { mockBackend } from './mockBackend';
 import { ApiLog } from '../types/wind';
+import { friendlyFetchMessage } from '../utils/network-errors';
+import { unwrapErrorMessage, unwrapList } from '../utils/response';
 
 export type ApiMode = 'MOCK' | 'LIVE';
 
 class ApiService {
   private mode: ApiMode = 'MOCK';
-  private baseUrl: string = 'http://localhost:3300';
+  // Base URLs default to '' (same-origin) so LIVE requests flow through the
+  // wind-ui server proxy, which routes /api/* + /health -> wind-srv and the
+  // rest -> tackle-srv. LocalStorage overrides allow direct connections.
+  private baseUrl: string = '';
+  private tackleBaseUrl: string = '';
   private logs: ApiLog[] = [];
   private listeners: ((logs: ApiLog[]) => void)[] = [];
 
   constructor() {
+    // Mode resolution: explicit localStorage toggle > runtime server flag
+    // (window.__WIND_MODE__, injected by server.ts) > build-time .env flag
+    // (import.meta.env.VITE_WIND_MODE) > MOCK default. This lets
+    // VITE_WIND_MODE=live start the client in live mode while keeping the
+    // BrandingBox toggle working.
+    const runtimeMode = typeof window !== 'undefined' ? window.__WIND_MODE__ : undefined;
+    const envMode = (runtimeMode || import.meta.env.VITE_WIND_MODE || 'mock').toLowerCase();
     const savedMode = localStorage.getItem('wind_api_mode');
     if (savedMode === 'LIVE' || savedMode === 'MOCK') {
       this.mode = savedMode;
+    } else if (envMode === 'live') {
+      this.mode = 'LIVE';
     }
     const savedUrl = localStorage.getItem('wind_api_base_url');
     if (savedUrl) {
       this.baseUrl = savedUrl;
+    }
+    const savedTackleUrl = localStorage.getItem('wind_tackle_api_base_url');
+    if (savedTackleUrl) {
+      this.tackleBaseUrl = savedTackleUrl;
     }
   }
 
@@ -36,6 +55,22 @@ class ApiService {
   public setBaseUrl(url: string) {
     this.baseUrl = url;
     localStorage.setItem('wind_api_base_url', url);
+  }
+
+  public getTackleBaseUrl(): string {
+    return this.tackleBaseUrl;
+  }
+
+  public setTackleBaseUrl(url: string) {
+    this.tackleBaseUrl = url;
+    localStorage.setItem('wind_tackle_api_base_url', url);
+  }
+
+  // Matches the server proxy's routing: /api/* and /health belong to wind-srv;
+  // everything else (config/ai, tasks, sessions, scheduler, memory, prompts) is
+  // tackle-srv territory. With default '' base URLs both flow through the proxy.
+  private isTackleEndpoint(endpoint: string): boolean {
+    return !endpoint.startsWith('/api/') && endpoint !== '/health';
   }
 
   public getLogs(): ApiLog[] {
@@ -104,26 +139,34 @@ class ApiService {
     } else {
       // LIVE REST Call
       try {
-        const fullUrl = `${this.baseUrl}${endpoint}`;
+        const base = this.isTackleEndpoint(endpoint) ? this.tackleBaseUrl : this.baseUrl;
+        const fullUrl = `${base}${endpoint}`;
         const options: RequestInit = {
           method,
           headers: { 'Content-Type': 'application/json' }
         };
-        if (body && (method === 'POST' || method === 'PUT')) {
+        // POST/PUT/PATCH all carry bodies; the previous gate silently dropped
+        // PATCH payloads (scheduler toggle, tool-access) in live mode.
+        if (body && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
           options.body = JSON.stringify(body);
         }
         const res = await fetch(fullUrl, options);
-        const data = await res.json();
+        const raw = await res.text();
+        let data: any = null;
+        try { data = raw ? JSON.parse(raw) : null; } catch { data = raw; }
         const duration = Math.round(performance.now() - start);
         this.logCall(method, endpoint, res.status, duration, body, data);
         if (!res.ok) {
-          throw new Error(data.message || `HTTP ${res.status}`);
+          // Unwrap error envelopes: { message }, { error: 'msg' }, { error: { message } }
+          throw new Error(unwrapErrorMessage(data, `HTTP ${res.status}`));
         }
         return data as T;
       } catch (err: any) {
         const duration = Math.round(performance.now() - start);
-        this.logCall(method, endpoint, 500, duration, body, { error: err.message });
-        throw err;
+        // Map known fetch network-failure messages to a friendly string.
+        const friendly = friendlyFetchMessage(err);
+        this.logCall(method, endpoint, 500, duration, body, { error: friendly });
+        throw new Error(friendly);
       }
     }
   }
@@ -468,20 +511,23 @@ class ApiService {
   }
 
   // --- SESSIONS & SCHEDULER ---
-  public getSessions() {
-    return this.request('GET', '/sessions', () => mockBackend.getSessions());
+  public async getSessions() {
+    const data = await this.request<any>('GET', '/sessions', () => mockBackend.getSessions());
+    return unwrapList(data, 'sessions');
   }
 
   public killSession(sessionId: string) {
     return this.request('POST', `/sessions/${sessionId}/kill`, () => mockBackend.killSession(sessionId));
   }
 
-  public getScheduler() {
-    return this.request('GET', '/scheduler', () => mockBackend.getScheduler());
+  public async getScheduler() {
+    const data = await this.request<any>('GET', '/scheduler', () => mockBackend.getScheduler());
+    return unwrapList(data, 'entries');
   }
 
-  public getDueScheduler() {
-    return this.request('GET', '/scheduler/due', () => mockBackend.getDueScheduler());
+  public async getDueScheduler() {
+    const data = await this.request<any>('GET', '/scheduler/due', () => mockBackend.getDueScheduler());
+    return unwrapList(data, 'entries');
   }
 
   public createScheduler(data: any) {
@@ -497,8 +543,9 @@ class ApiService {
   }
 
   // --- MEMORY & CHECKPOINTS ---
-  public getMemoryProcedures(role: string) {
-    return this.request('GET', `/memory/procedures/${role}`, () => mockBackend.getMemoryProcedures(role));
+  public async getMemoryProcedures(role: string) {
+    const data = await this.request<any>('GET', `/memory/procedures/${role}`, () => mockBackend.getMemoryProcedures(role));
+    return unwrapList(data, 'procedures');
   }
 
   public getMemoryProcedureBySlug(slug: string) {
@@ -518,21 +565,28 @@ class ApiService {
   }
 
   // --- PROMPTS, TASKS & TOOL ACCESS ---
-  public getPrompts(role: string) {
-    return this.request('GET', `/prompts/${role}`, () => mockBackend.getPrompts(role));
+  public async getPrompts(role: string) {
+    const data = await this.request<any>('GET', `/prompts/${role}`, () => mockBackend.getPrompts(role));
+    return unwrapList(data, 'prompts');
   }
 
   public getPromptBySlug(role: string, slug: string) {
-    return this.request('GET', `/prompt/${role}/${slug}`, () => mockBackend.getPromptBySlug(role, slug));
+    // tackle-srv serves the plural form /prompts/:role/:slug (wind-ui compat);
+    // the singular /prompt/... was a mock-only path that 404s live.
+    return this.request('GET', `/prompts/${role}/${slug}`, () => mockBackend.getPromptBySlug(role, slug));
   }
 
-  public getRoleTasks(role: string) {
-    return this.request('GET', `/tasks/${role}`, () => mockBackend.getRoleTasks(role));
+  public async getRoleTasks(role: string) {
+    // tackle-srv has no /tasks/:role route — it filters via /tasks?role= and
+    // wraps the result as { count, tasks }. Unwrap to the array for both modes.
+    const data = await this.request<any>('GET', `/tasks?role=${encodeURIComponent(role)}`, () => mockBackend.getRoleTasks(role));
+    return unwrapList(data, 'tasks');
   }
 
-  public getRoleToolAccess(role?: string) {
+  public async getRoleToolAccess(role?: string) {
     const endpoint = role ? `/config/ai/tool-access/${role}` : '/config/ai/tool-access';
-    return this.request('GET', endpoint, () => mockBackend.getRoleToolAccess(role));
+    const data = await this.request<any>('GET', endpoint, () => mockBackend.getRoleToolAccess(role));
+    return unwrapList(data, 'access');
   }
 
   public updateRoleToolAccess(id: string, data: any) {
