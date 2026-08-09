@@ -115,7 +115,7 @@ export const InstanceTaskTimeline: React.FC<InstanceTaskTimelineProps> = ({
             <Zap className="w-4 h-4 animate-pulse" />
           </div>
           <div>
-            <h3 className={`text-xs font-bold font-mono uppercase tracking-wider ${styles.primaryText}`}>
+            <h3 className={`text-sm font-bold font-mono uppercase tracking-wider ${styles.primaryText}`}>
               TASK EXECUTION TIMELINE SEQUENCE
             </h3>
             <p className={`text-[11px] ${styles.mutedText}`}>
@@ -196,7 +196,7 @@ export const InstanceTaskTimeline: React.FC<InstanceTaskTimelineProps> = ({
                     </span>
                     <div>
                       <div className="flex items-center space-x-2">
-                        <span className={`text-xs font-bold font-mono ${styles.primaryText}`}>
+                        <span className={`text-sm font-bold font-mono ${styles.primaryText}`}>
                           {step.nodeName}
                         </span>
                         <span className={`text-[9px] font-bold px-2 py-0.5 rounded border uppercase font-mono ${badgeStyle}`}>
@@ -238,7 +238,7 @@ export const InstanceTaskTimeline: React.FC<InstanceTaskTimelineProps> = ({
 
                 {/* Expanded Execution Details Payload / Error Log */}
                 {isExpanded && (
-                  <div className="mt-3 pt-3 border-t border-slate-700/60 space-y-2 text-xs font-mono">
+                  <div className="mt-3 pt-3 border-t border-slate-700/60 space-y-2 text-sm font-mono">
                     {step.outcomeCode && (
                       <div className="flex items-center space-x-2">
                         <span className="text-slate-400 text-[10px]">OUTCOME CODE:</span>
@@ -281,7 +281,7 @@ export const InstanceTaskTimeline: React.FC<InstanceTaskTimelineProps> = ({
         })}
 
         {timelineSteps.length === 0 && (
-          <div className="p-6 text-center text-xs font-mono text-slate-500 italic">
+          <div className="p-6 text-center text-sm font-mono text-slate-500 italic">
             No node sequence available for this workflow version.
           </div>
         )}

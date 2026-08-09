@@ -296,7 +296,7 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
             <PlayCircle className="w-4 h-4" />
           </div>
           <div>
-            <h1 className={`text-xs font-bold font-mono uppercase ${styles.primaryText}`}>
+            <h1 className={`text-sm font-bold font-mono uppercase ${styles.primaryText}`}>
               RUNTIME INSTANCES & ADVANCE DEBUGGER
             </h1>
             <p className={`text-[11px] ${styles.mutedText}`}>
@@ -311,7 +311,7 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className={`px-2.5 py-1 rounded text-xs font-mono border ${styles.border} ${styles.subCard} ${styles.primaryText} focus:outline-none`}
+            className={`px-2.5 py-1 rounded text-sm font-mono border ${styles.border} ${styles.subCard} ${styles.primaryText} focus:outline-none`}
           >
             <option value="">All Statuses ({instances.length})</option>
             <option value="ACTIVE">ACTIVE</option>
@@ -330,7 +330,7 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
               <Calendar className="w-4 h-4" />
             </div>
             <div>
-              <h2 className={`text-xs font-bold font-mono uppercase tracking-wide ${styles.primaryText}`}>
+              <h2 className={`text-sm font-bold font-mono uppercase tracking-wide ${styles.primaryText}`}>
                 DAILY WORKFLOW EXECUTION FREQUENCY HEATMAP
               </h2>
               <p className={`text-[11px] ${styles.mutedText}`}>
@@ -419,7 +419,7 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
                   </span>
                   <button
                     onClick={() => setSelectedHeatmapDay(null)}
-                    className="ml-2 text-xs text-slate-400 hover:text-white underline"
+                    className="ml-2 text-sm text-slate-400 hover:text-white underline"
                   >
                     Clear
                   </button>
@@ -450,7 +450,7 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Left Col: Instances List */}
         <div className="p-3.5 rounded border border-[#30363d] bg-[#161b22] flex flex-col space-y-2.5">
-          <div className="flex items-center justify-between text-xs font-mono border-b border-[#30363d] pb-2">
+          <div className="flex items-center justify-between text-sm font-mono border-b border-[#30363d] pb-2">
             <span className="font-bold text-[#8b949e] text-[11px]">INSTANCES ({filteredInstances.length})</span>
             <button onClick={onRefresh} className="p-1 text-[#8b949e] hover:text-white">
               <RefreshCw className="w-3.5 h-3.5" />
@@ -470,7 +470,7 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
                       : 'bg-[#0d1117]/60 border-[#30363d] hover:border-[#8b949e]'
                   }`}
                 >
-                  <div className="flex items-center justify-between font-mono text-xs mb-1">
+                  <div className="flex items-center justify-between font-mono text-sm mb-1">
                     <span className="font-bold text-[#58a6ff] text-[11px]">{inst.id}</span>
                     <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold border ${
                       inst.status === 'ACTIVE' ? 'bg-green-950/80 text-green-400 border-green-800' :
@@ -482,7 +482,7 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
                     </span>
                   </div>
 
-                  <div className="text-xs text-[#c9d1d9] font-semibold truncate">
+                  <div className="text-sm text-[#c9d1d9] font-semibold truncate">
                     {inst.workflow_name}
                   </div>
                   <div className="text-[10px] font-mono text-[#8b949e] mt-1 flex items-center justify-between">
@@ -494,7 +494,7 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
             })}
 
             {filteredInstances.length === 0 && (
-              <div className="p-8 text-center text-xs text-[#8b949e] font-mono italic">
+              <div className="p-8 text-center text-sm text-[#8b949e] font-mono italic">
                 No instances match the filter.
               </div>
             )}
@@ -512,7 +512,7 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
                     <h2 className="text-sm font-extrabold font-mono text-[#58a6ff]">
                       {selectedInstance.id}
                     </h2>
-                    <span className="text-xs text-[#8b949e] font-mono">
+                    <span className="text-sm text-[#8b949e] font-mono">
                       ({selectedInstance.workflow_name} v{selectedInstance.version_number})
                     </span>
                   </div>
@@ -589,7 +589,7 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
                       return (
                         <div
                           key={n.id}
-                          className={`p-2.5 rounded border font-mono text-xs space-y-1 ${
+                          className={`p-2.5 rounded border font-mono text-sm space-y-1 ${
                             completedTicket ? 'bg-green-950/40 border-green-800/80 text-green-300' :
                             activeTicket ? 'bg-amber-950/50 border-amber-600 text-amber-200 animate-pulse' :
                             'bg-[#0d1117] border-[#30363d] text-[#8b949e]'
@@ -629,7 +629,7 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
                 </div>
 
                 <div className="overflow-x-auto border rounded border-[#30363d] bg-[#0d1117]">
-                  <table className="w-full text-left border-collapse text-xs font-mono">
+                  <table className="w-full text-left border-collapse text-sm font-mono">
                     <thead>
                       <tr className="bg-[#161b22] text-[#8b949e] border-b border-[#30363d]">
                         <th className="py-1.5 px-2.5 font-semibold text-[10px] uppercase">TICKET ID</th>
@@ -670,7 +670,7 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
                       ))}
                       {tickets.length === 0 && (
                         <tr>
-                          <td colSpan={4} className="py-3 text-center text-[#8b949e] italic text-xs">
+                          <td colSpan={4} className="py-3 text-center text-[#8b949e] italic text-sm">
                             No tickets generated for this instance yet.
                           </td>
                         </tr>
@@ -689,7 +689,7 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
 
                 <div className="space-y-1.5">
                   {receipts.map(rcpt => (
-                    <div key={rcpt.id} className="p-2.5 rounded bg-[#0d1117] border border-[#30363d] font-mono text-xs space-y-1">
+                    <div key={rcpt.id} className="p-2.5 rounded bg-[#0d1117] border border-[#30363d] font-mono text-sm space-y-1">
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-[#58a6ff] text-[11px]">{rcpt.id}</span>
                         <span className="text-green-400 font-bold text-[10px] bg-green-950/60 px-1.5 py-0.2 rounded border border-green-800">
@@ -705,7 +705,7 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
                     </div>
                   ))}
                   {receipts.length === 0 && (
-                    <div className="p-3 text-center text-xs text-[#8b949e] font-mono italic bg-[#0d1117] rounded border border-[#30363d]">
+                    <div className="p-3 text-center text-sm text-[#8b949e] font-mono italic bg-[#0d1117] rounded border border-[#30363d]">
                       No receipts recorded yet. Advance active tickets above to generate receipts.
                     </div>
                   )}
@@ -714,7 +714,7 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
             </div>
           </div>
         ) : (
-          <div className="lg:col-span-2 p-12 text-center text-[#8b949e] font-mono text-xs">
+          <div className="lg:col-span-2 p-12 text-center text-[#8b949e] font-mono text-sm">
             Select an instance on the left to inspect tickets, receipts, and advance state.
           </div>
         )}
@@ -726,7 +726,7 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
           <div className="p-5 rounded border border-[#30363d] max-w-md w-full font-sans space-y-3 bg-[#161b22] text-[#c9d1d9]">
             <div className="flex items-center justify-between border-b border-[#30363d] pb-2">
               <div>
-                <h3 className="font-bold font-mono text-xs text-[#58a6ff]">ADVANCE WORKFLOW TICKET</h3>
+                <h3 className="font-bold font-mono text-sm text-[#58a6ff]">ADVANCE WORKFLOW TICKET</h3>
                 <p className="text-[10px] text-[#8b949e]">Complete task ticket and trigger graph traversal</p>
               </div>
               <button onClick={() => setAdvanceTicket(null)} className="text-[#8b949e] hover:text-white">
@@ -734,7 +734,7 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
               </button>
             </div>
 
-            <form onSubmit={handleExecuteAdvance} className="space-y-3 text-xs font-mono">
+            <form onSubmit={handleExecuteAdvance} className="space-y-3 text-sm font-mono">
               <div className="p-2.5 rounded bg-[#0d1117] border border-[#30363d] space-y-1 text-[11px]">
                 <div><span className="text-[#8b949e]">TICKET:</span> <span className="text-[#58a6ff]">{advanceTicket.id}</span></div>
                 <div><span className="text-[#8b949e]">NODE:</span> <span className="text-[#c9d1d9]">{advanceTicket.node_name}</span></div>
@@ -747,7 +747,7 @@ export const InstanceMonitor: React.FC<InstanceMonitorProps> = ({
                   required
                   value={selectedOutcomeId}
                   onChange={(e) => setSelectedOutcomeId(e.target.value)}
-                  className="w-full p-2 rounded border border-[#30363d] bg-[#0d1117] text-[#c9d1d9] text-xs"
+                  className="w-full p-2 rounded border border-[#30363d] bg-[#0d1117] text-[#c9d1d9] text-sm"
                 >
                   {currentTaskForAdvance?.outcomes?.map(o => (
                     <option key={o.id} value={o.id}>

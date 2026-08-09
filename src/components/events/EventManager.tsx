@@ -190,14 +190,14 @@ export const EventManager: React.FC<EventManagerProps> = ({
                 NATS / BUS INTEGRATED
               </span>
             </div>
-            <p className={`text-xs ${styles.mutedText}`}>
+            <p className={`text-sm ${styles.mutedText}`}>
               Event-driven spine routing published messages to automated workflow execution graphs
             </p>
           </div>
         </div>
 
         {/* Quick Stats */}
-        <div className="flex items-center space-x-2 text-xs font-mono">
+        <div className="flex items-center space-x-2 text-sm font-mono">
           <div className={`px-3 py-2 rounded border ${styles.subCard} text-center`}>
             <div className={styles.mutedText}>EVENT TYPES</div>
             <div className="text-sm font-extrabold text-blue-400">{eventTypes.length}</div>
@@ -225,7 +225,7 @@ export const EventManager: React.FC<EventManagerProps> = ({
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setActiveSubTab('events')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-t font-mono text-xs font-bold transition-all border-b-2 ${
+            className={`flex items-center space-x-2 px-4 py-2 rounded-t font-mono text-sm font-bold transition-all border-b-2 ${
               activeSubTab === 'events'
                 ? 'border-blue-500 bg-blue-950/40 text-blue-400'
                 : 'border-transparent text-slate-400 hover:text-white'
@@ -242,7 +242,7 @@ export const EventManager: React.FC<EventManagerProps> = ({
 
           <button
             onClick={() => setActiveSubTab('event-types')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-t font-mono text-xs font-bold transition-all border-b-2 ${
+            className={`flex items-center space-x-2 px-4 py-2 rounded-t font-mono text-sm font-bold transition-all border-b-2 ${
               activeSubTab === 'event-types'
                 ? 'border-blue-500 bg-blue-950/40 text-blue-400'
                 : 'border-transparent text-slate-400 hover:text-white'
@@ -254,7 +254,7 @@ export const EventManager: React.FC<EventManagerProps> = ({
 
           <button
             onClick={() => setActiveSubTab('publish')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-t font-mono text-xs font-bold transition-all border-b-2 ${
+            className={`flex items-center space-x-2 px-4 py-2 rounded-t font-mono text-sm font-bold transition-all border-b-2 ${
               activeSubTab === 'publish'
                 ? 'border-blue-500 bg-blue-950/40 text-blue-400'
                 : 'border-transparent text-slate-400 hover:text-white'
@@ -268,7 +268,7 @@ export const EventManager: React.FC<EventManagerProps> = ({
         {activeSubTab === 'events' && (
           <button
             onClick={handlePollUnconsumed}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold font-mono text-xs transition-all shadow-md"
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold font-mono text-sm transition-all shadow-md"
             title="FOR UPDATE SKIP LOCKED"
           >
             <Zap className="w-3.5 h-3.5" />
@@ -279,7 +279,7 @@ export const EventManager: React.FC<EventManagerProps> = ({
         {activeSubTab === 'event-types' && (
           <button
             onClick={() => setShowRegisterModal(true)}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold font-mono text-xs transition-all shadow-md"
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold font-mono text-sm transition-all shadow-md"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>REGISTER EVENT TYPE</span>
@@ -299,11 +299,11 @@ export const EventManager: React.FC<EventManagerProps> = ({
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Search event_type, subject, source..."
-                className="w-full bg-[#0d1117] border border-[#30363d] rounded pl-9 pr-3 py-1.5 text-xs font-mono text-slate-200 focus:outline-none focus:border-blue-500"
+                className="w-full bg-[#0d1117] border border-[#30363d] rounded pl-9 pr-3 py-1.5 text-sm font-mono text-slate-200 focus:outline-none focus:border-blue-500"
               />
             </div>
 
-            <div className="flex items-center space-x-2 text-xs font-mono">
+            <div className="flex items-center space-x-2 text-sm font-mono">
               <span className="text-slate-400">STATUS:</span>
               {(['ALL', 'UNCONSUMED', 'CONSUMED'] as const).map(st => (
                 <button
@@ -340,7 +340,7 @@ export const EventManager: React.FC<EventManagerProps> = ({
                     </div>
                     <div className="space-y-1">
                       <div className="flex items-center space-x-2">
-                        <span className="font-mono text-xs font-bold text-blue-400 bg-blue-950/80 px-2 py-0.5 rounded border border-blue-800">
+                        <span className="font-mono text-sm font-bold text-blue-400 bg-blue-950/80 px-2 py-0.5 rounded border border-blue-800">
                           {evt.event_type}
                         </span>
                         <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${isConsumed ? 'bg-slate-800 text-slate-400 border-slate-700' : 'bg-amber-900/80 text-amber-300 border-amber-700'}`}>
@@ -350,7 +350,7 @@ export const EventManager: React.FC<EventManagerProps> = ({
                           ID: {evt.id}
                         </span>
                       </div>
-                      <h4 className="text-xs font-semibold text-slate-200">
+                      <h4 className="text-sm font-semibold text-slate-200">
                         {evt.subject}
                       </h4>
                       <div className="flex items-center space-x-3 text-[10px] font-mono text-slate-400">
@@ -377,7 +377,7 @@ export const EventManager: React.FC<EventManagerProps> = ({
             })}
 
             {filteredEvents.length === 0 && (
-              <div className="p-8 text-center text-xs font-mono text-slate-500 bg-[#161b22] border border-[#30363d] rounded-lg">
+              <div className="p-8 text-center text-sm font-mono text-slate-500 bg-[#161b22] border border-[#30363d] rounded-lg">
                 No events found matching current search filter.
               </div>
             )}
@@ -397,14 +397,14 @@ export const EventManager: React.FC<EventManagerProps> = ({
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <div className="flex items-center space-x-2">
-                      <span className="font-mono text-xs font-extrabold text-blue-400 bg-blue-950/80 px-2.5 py-0.5 rounded border border-blue-800">
+                      <span className="font-mono text-sm font-extrabold text-blue-400 bg-blue-950/80 px-2.5 py-0.5 rounded border border-blue-800">
                         {type.event_type}
                       </span>
                       <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${type.enabled ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : 'bg-slate-800 text-slate-400 border-slate-700'}`}>
                         {type.enabled ? 'ENABLED' : 'DISABLED'}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-300 mt-2 font-sans">
+                    <p className="text-sm text-slate-300 mt-2 font-sans">
                       {type.description}
                     </p>
                   </div>
@@ -461,13 +461,13 @@ export const EventManager: React.FC<EventManagerProps> = ({
               <h3 className="text-sm font-bold font-mono text-white uppercase tracking-wider">
                 PUBLISH PIPELINE EVENT (NATS DISPATCH)
               </h3>
-              <p className="text-xs text-slate-400 font-mono">
+              <p className="text-sm text-slate-400 font-mono">
                 Emit event message to test automatic workflow triggers
               </p>
             </div>
           </div>
 
-          <form onSubmit={handlePublishEvent} className="space-y-4 font-mono text-xs">
+          <form onSubmit={handlePublishEvent} className="space-y-4 font-mono text-sm">
             <div className="space-y-1">
               <label className="text-slate-300 font-bold">EVENT TYPE:</label>
               <select
@@ -518,7 +518,7 @@ export const EventManager: React.FC<EventManagerProps> = ({
 
             <button
               type="submit"
-              className="w-full py-2.5 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold font-mono text-xs transition-all flex items-center justify-center space-x-2 shadow-lg"
+              className="w-full py-2.5 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold font-mono text-sm transition-all flex items-center justify-center space-x-2 shadow-lg"
             >
               <Send className="w-4 h-4" />
               <span>PUBLISH EVENT TO BUS</span>
@@ -526,7 +526,7 @@ export const EventManager: React.FC<EventManagerProps> = ({
           </form>
 
           {pubResult && (
-            <div className="p-3.5 rounded bg-emerald-950/80 border border-emerald-800 text-emerald-300 space-y-2 font-mono text-xs">
+            <div className="p-3.5 rounded bg-emerald-950/80 border border-emerald-800 text-emerald-300 space-y-2 font-mono text-sm">
               <div className="flex items-center space-x-2 font-bold">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                 <span>EVENT EMITTED SUCCESSFULLY</span>
@@ -555,7 +555,7 @@ export const EventManager: React.FC<EventManagerProps> = ({
       {/* REGISTER EVENT TYPE MODAL */}
       {showRegisterModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-[#161b22] border border-[#30363d] rounded-lg p-5 shadow-2xl space-y-4 font-mono text-xs text-slate-200">
+          <div className="max-w-md w-full bg-[#161b22] border border-[#30363d] rounded-lg p-5 shadow-2xl space-y-4 font-mono text-sm text-slate-200">
             <div className="flex items-center justify-between border-b border-slate-800 pb-2">
               <h3 className="font-bold text-sm text-white flex items-center space-x-2">
                 <Radio className="w-4 h-4 text-blue-400" />
@@ -650,7 +650,7 @@ export const EventManager: React.FC<EventManagerProps> = ({
       {/* EVENT PAYLOAD INSPECTION MODAL */}
       {selectedEvent && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="max-w-xl w-full bg-[#161b22] border border-[#30363d] rounded-lg p-5 shadow-2xl space-y-4 font-mono text-xs text-slate-200">
+          <div className="max-w-xl w-full bg-[#161b22] border border-[#30363d] rounded-lg p-5 shadow-2xl space-y-4 font-mono text-sm text-slate-200">
             <div className="flex items-center justify-between border-b border-slate-800 pb-2">
               <h3 className="font-bold text-sm text-white flex items-center space-x-2">
                 <Terminal className="w-4 h-4 text-blue-400" />

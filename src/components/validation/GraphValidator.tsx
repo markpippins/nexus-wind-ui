@@ -82,7 +82,7 @@ export const GraphValidator: React.FC<GraphValidatorProps> = ({
             <ShieldCheck className="w-4 h-4" />
           </div>
           <div>
-            <h1 className="text-xs font-bold font-mono text-[#c9d1d9] uppercase">
+            <h1 className="text-sm font-bold font-mono text-[#c9d1d9] uppercase">
               GRAPH INTEGRITY & STRUCTURAL VALIDATION
             </h1>
             <p className="text-[11px] text-[#8b949e]">
@@ -96,7 +96,7 @@ export const GraphValidator: React.FC<GraphValidatorProps> = ({
           <select
             value={selectedWorkflowId}
             onChange={(e) => setSelectedWorkflowId(e.target.value)}
-            className="px-2.5 py-1 rounded text-xs font-mono border border-[#30363d] bg-[#0d1117] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff]"
+            className="px-2.5 py-1 rounded text-sm font-mono border border-[#30363d] bg-[#0d1117] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff]"
           >
             {workflows.map(wf => (
               <option key={wf.id} value={wf.id}>{wf.name}</option>
@@ -105,7 +105,7 @@ export const GraphValidator: React.FC<GraphValidatorProps> = ({
 
           <button
             onClick={handleManualRun}
-            className="px-2.5 py-1 rounded bg-[#238636] hover:bg-[#2ea043] text-white font-mono text-xs font-bold transition-all flex items-center space-x-1"
+            className="px-2.5 py-1 rounded bg-[#238636] hover:bg-[#2ea043] text-white font-mono text-sm font-bold transition-all flex items-center space-x-1"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isValidating ? 'animate-spin' : ''}`} />
             <span>RUN VALIDATION</span>
@@ -121,7 +121,7 @@ export const GraphValidator: React.FC<GraphValidatorProps> = ({
             <div className="flex items-center justify-between border-b border-[#30363d] pb-2">
               <div className="flex items-center space-x-2">
                 <ShieldCheck className={`w-4 h-4 ${graphResult?.valid ? 'text-green-400' : 'text-amber-400'}`} />
-                <h2 className="font-mono text-xs font-bold text-[#c9d1d9]">GRAPH INTEGRITY REPORT</h2>
+                <h2 className="font-mono text-sm font-bold text-[#c9d1d9]">GRAPH INTEGRITY REPORT</h2>
               </div>
               <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono border ${
                 graphResult?.valid
@@ -132,7 +132,7 @@ export const GraphValidator: React.FC<GraphValidatorProps> = ({
               </span>
             </div>
 
-            <div className="space-y-2.5 font-mono text-xs">
+            <div className="space-y-2.5 font-mono text-sm">
               <div className="text-[#8b949e] text-[11px]">
                 Endpoint: <span className="text-[#58a6ff]">GET /api/validate/{selectedVersionId}</span>
               </div>
@@ -155,7 +155,7 @@ export const GraphValidator: React.FC<GraphValidatorProps> = ({
               ) : (
                 <div className="p-6 text-center bg-[#0d1117] rounded border border-[#30363d] text-green-400 space-y-1.5">
                   <CheckCircle2 className="w-6 h-6 mx-auto text-green-400" />
-                  <p className="font-bold text-xs">Zero graph issues detected.</p>
+                  <p className="font-bold text-sm">Zero graph issues detected.</p>
                   <p className="text-[10px] text-[#8b949e]">Every outcome code is properly handled by a directed edge, and all nodes are reachable.</p>
                 </div>
               )}
@@ -167,7 +167,7 @@ export const GraphValidator: React.FC<GraphValidatorProps> = ({
             <div className="flex items-center justify-between border-b border-[#30363d] pb-2">
               <div className="flex items-center space-x-2">
                 <Layers className={`w-4 h-4 ${structResult?.valid ? 'text-green-400' : 'text-rose-400'}`} />
-                <h2 className="font-mono text-xs font-bold text-[#c9d1d9]">STRUCTURAL SPECIFICATION CHECKS</h2>
+                <h2 className="font-mono text-sm font-bold text-[#c9d1d9]">STRUCTURAL SPECIFICATION CHECKS</h2>
               </div>
               <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono border ${
                 structResult?.valid
@@ -178,7 +178,7 @@ export const GraphValidator: React.FC<GraphValidatorProps> = ({
               </span>
             </div>
 
-            <div className="space-y-2.5 font-mono text-xs">
+            <div className="space-y-2.5 font-mono text-sm">
               <div className="text-[#8b949e] text-[11px]">
                 Endpoint: <span className="text-[#58a6ff]">POST /api/validate/{selectedVersionId}/structure</span>
               </div>
@@ -202,7 +202,7 @@ export const GraphValidator: React.FC<GraphValidatorProps> = ({
           </div>
         </div>
       ) : (
-        <div className="p-12 text-center text-[#8b949e] font-mono text-xs italic">
+        <div className="p-12 text-center text-[#8b949e] font-mono text-sm italic">
           Select a workflow above to run graph integrity and structural validation tests.
         </div>
       )}

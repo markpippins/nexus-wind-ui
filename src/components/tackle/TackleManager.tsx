@@ -346,7 +346,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h1 className="text-xs font-bold font-mono text-[#c9d1d9] uppercase">
+              <h1 className="text-sm font-bold font-mono text-[#c9d1d9] uppercase">
                 TACKLE-SRV AI CONFIG REGISTRY & CONTEXT ENGINE
               </h1>
               <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-blue-950/80 text-blue-300 border border-blue-800">
@@ -362,7 +362,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
         <div className="flex items-center space-x-2">
           <button
             onClick={handleSeedDefaults}
-            className="px-2.5 py-1 rounded border border-[#30363d] bg-[#0d1117] text-amber-300 hover:text-white font-mono text-xs font-bold transition-all flex items-center space-x-1"
+            className="px-2.5 py-1 rounded border border-[#30363d] bg-[#0d1117] text-amber-300 hover:text-white font-mono text-sm font-bold transition-all flex items-center space-x-1"
             title="Seed default providers, models, bundles, and roles"
           >
             <Database className="w-3.5 h-3.5" />
@@ -371,7 +371,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
 
           <button
             onClick={loadTackleData}
-            className="px-2.5 py-1 rounded bg-[#238636] hover:bg-[#2ea043] text-white font-mono text-xs font-bold transition-all flex items-center space-x-1"
+            className="px-2.5 py-1 rounded bg-[#238636] hover:bg-[#2ea043] text-white font-mono text-sm font-bold transition-all flex items-center space-x-1"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span>REFRESH</span>
@@ -380,7 +380,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
       </div>
 
       {/* Navigation Sub-Tabs */}
-      <div className="flex items-center space-x-1 border-b border-[#30363d] pb-2 font-mono text-xs overflow-x-auto">
+      <div className="flex items-center space-x-1 border-b border-[#30363d] pb-2 font-mono text-sm overflow-x-auto">
         <button
           onClick={() => setActiveTab('ai-config')}
           className={`px-3 py-1.5 rounded flex items-center space-x-1.5 transition-all ${
@@ -447,7 +447,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
         <div className="space-y-4">
           {/* Validation Banner */}
           {validation && (
-            <div className={`p-3 rounded border flex items-center justify-between font-mono text-xs ${
+            <div className={`p-3 rounded border flex items-center justify-between font-mono text-sm ${
               validation.valid ? 'bg-green-950/30 border-green-800/60 text-green-300' : 'bg-amber-950/30 border-amber-800/60 text-amber-300'
             }`}>
               <div className="flex items-center space-x-2">
@@ -467,7 +467,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
           {/* Top Row: Providers, Harnesses, Models */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Providers */}
-            <div className="p-3.5 rounded border border-[#30363d] bg-[#161b22] space-y-3 font-mono text-xs">
+            <div className="p-3.5 rounded border border-[#30363d] bg-[#161b22] space-y-3 font-mono text-sm">
               <div className="flex items-center justify-between border-b border-[#30363d] pb-2">
                 <div className="flex items-center space-x-2">
                   <Server className="w-4 h-4 text-[#58a6ff]" />
@@ -507,7 +507,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
             </div>
 
             {/* Harnesses */}
-            <div className="p-3.5 rounded border border-[#30363d] bg-[#161b22] space-y-3 font-mono text-xs">
+            <div className="p-3.5 rounded border border-[#30363d] bg-[#161b22] space-y-3 font-mono text-sm">
               <div className="flex items-center justify-between border-b border-[#30363d] pb-2">
                 <div className="flex items-center space-x-2">
                   <Terminal className="w-4 h-4 text-emerald-400" />
@@ -531,7 +531,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
             </div>
 
             {/* Models */}
-            <div className="p-3.5 rounded border border-[#30363d] bg-[#161b22] space-y-3 font-mono text-xs">
+            <div className="p-3.5 rounded border border-[#30363d] bg-[#161b22] space-y-3 font-mono text-sm">
               <div className="flex items-center justify-between border-b border-[#30363d] pb-2">
                 <div className="flex items-center space-x-2">
                   <Cpu className="w-4 h-4 text-purple-400" />
@@ -569,7 +569,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
           </div>
 
           {/* MAIN PROMINENT SECTION: ROLE CONFIG BUNDLE ASSIGNMENTS & FALLBACK CHAIN */}
-          <div className="p-4 rounded border border-[#30363d] bg-[#161b22] space-y-4 font-mono text-xs">
+          <div className="p-4 rounded border border-[#30363d] bg-[#161b22] space-y-4 font-mono text-sm">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 border-b border-[#30363d] pb-3">
               <div className="flex items-center space-x-2.5">
                 <div className="p-1.5 rounded bg-amber-950/50 border border-amber-800/60 text-amber-300">
@@ -590,7 +590,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
                 <select
                   value={selectedRole}
                   onChange={(e) => setSelectedRole(e.target.value)}
-                  className="px-3 py-1.5 rounded border border-blue-800 bg-[#0d1117] text-[#58a6ff] font-bold text-xs"
+                  className="px-3 py-1.5 rounded border border-blue-800 bg-[#0d1117] text-[#58a6ff] font-bold text-sm"
                 >
                   <option value="engineer">engineer</option>
                   <option value="inspector">inspector</option>
@@ -599,7 +599,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
 
                 <button
                   onClick={() => handleOpenAssignBundleModal()}
-                  className="px-3 py-1.5 rounded bg-[#238636] hover:bg-[#2ea043] text-white text-xs font-bold transition-all flex items-center space-x-1"
+                  className="px-3 py-1.5 rounded bg-[#238636] hover:bg-[#2ea043] text-white text-sm font-bold transition-all flex items-center space-x-1"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>ASSIGN BUNDLE TO ROLE</span>
@@ -638,7 +638,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
 
                         <div className="space-y-1">
                           <div className="flex items-center space-x-2">
-                            <span className="font-bold text-[#c9d1d9] text-xs">{b.name}</span>
+                            <span className="font-bold text-[#c9d1d9] text-sm">{b.name}</span>
                             <span className="text-[10px] text-[#8b949e]">({b.id})</span>
                             {isPrimary && (
                               <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-green-950 text-green-300 border border-green-800">
@@ -724,7 +724,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
               {currentRoleBundles.length === 0 && (
                 <div className="p-8 rounded border border-dashed border-[#30363d] text-center space-y-2">
                   <AlertOctagon className="w-6 h-6 text-amber-400 mx-auto" />
-                  <p className="text-[#8b949e] font-bold text-xs">
+                  <p className="text-[#8b949e] font-bold text-sm">
                     No Config Bundles assigned to role "{selectedRole}".
                   </p>
                   <p className="text-[11px] text-[#8b949e]">
@@ -732,7 +732,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
                   </p>
                   <button
                     onClick={() => handleOpenAssignBundleModal()}
-                    className="mt-2 px-3 py-1.5 rounded bg-[#238636] text-white text-xs font-bold inline-flex items-center space-x-1"
+                    className="mt-2 px-3 py-1.5 rounded bg-[#238636] text-white text-sm font-bold inline-flex items-center space-x-1"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Assign First Config Bundle</span>
@@ -743,7 +743,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
           </div>
 
           {/* Bottom Grid: Resolved Winner & Interactive Failover Simulator */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 font-mono text-xs">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 font-mono text-sm">
             {/* Active Config Bundle Resolver Output */}
             <div className="p-3.5 rounded border border-[#30363d] bg-[#161b22] space-y-3">
               <div className="flex items-center justify-between border-b border-[#30363d] pb-2">
@@ -756,7 +756,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
               {resolvedBundle ? (
                 <div className="p-3 rounded bg-[#0d1117] border border-green-800/80 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-green-300 text-xs">{resolvedBundle.name}</span>
+                    <span className="font-bold text-green-300 text-sm">{resolvedBundle.name}</span>
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-950 text-green-400 border border-green-800">
                       WINNING PRIORITY {resolvedBundle.priority}
                     </span>
@@ -820,7 +820,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
 
       {/* TAB 2: ROLE TOOL ACCESS ALLOWLIST */}
       {activeTab === 'tool-access' && (
-        <div className="p-3.5 rounded border border-[#30363d] bg-[#161b22] space-y-3 font-mono text-xs">
+        <div className="p-3.5 rounded border border-[#30363d] bg-[#161b22] space-y-3 font-mono text-sm">
           <div className="flex items-center justify-between border-b border-[#30363d] pb-2">
             <div className="flex items-center space-x-2">
               <Shield className="w-4 h-4 text-[#58a6ff]" />
@@ -879,7 +879,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
 
       {/* TAB 3: SESSIONS LEDGER & AGENT SCHEDULER */}
       {activeTab === 'sessions-scheduler' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 font-mono text-xs">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 font-mono text-sm">
           {/* Active Sessions Ledger */}
           <div className="p-3.5 rounded border border-[#30363d] bg-[#161b22] space-y-3">
             <div className="flex items-center justify-between border-b border-[#30363d] pb-2">
@@ -968,7 +968,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
 
       {/* TAB 4: MEMORY PROCEDURES & PROMPTS */}
       {activeTab === 'memory-prompts' && (
-        <div className="space-y-4 font-mono text-xs">
+        <div className="space-y-4 font-mono text-sm">
           {/* Controls Bar */}
           <div className="p-3 rounded border border-[#30363d] bg-[#161b22] flex items-center justify-between gap-3">
             <div className="flex items-center space-x-2">
@@ -986,7 +986,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
 
             <button
               onClick={handleRefreshMemory}
-              className="px-2.5 py-1 rounded bg-[#238636] hover:bg-[#2ea043] text-white text-xs font-bold flex items-center space-x-1"
+              className="px-2.5 py-1 rounded bg-[#238636] hover:bg-[#2ea043] text-white text-sm font-bold flex items-center space-x-1"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>SYNC PG → REDIS (/memory/refresh)</span>
@@ -1044,7 +1044,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
 
       {/* TAB 5: FAILURE RECOVERY & CIRCUIT BREAKER */}
       {activeTab === 'failure-recovery' && circuitBreaker && (
-        <div className="p-4 rounded border border-[#30363d] bg-[#161b22] space-y-4 max-w-2xl mx-auto font-mono text-xs">
+        <div className="p-4 rounded border border-[#30363d] bg-[#161b22] space-y-4 max-w-2xl mx-auto font-mono text-sm">
           <div className="flex items-center space-x-2 border-b border-[#30363d] pb-2">
             <ShieldAlert className="w-5 h-5 text-rose-400" />
             <h2 className="font-bold text-[#c9d1d9]">CIRCUIT BREAKER & FAILURE RECOVERY CONFIGURATION</h2>
@@ -1106,7 +1106,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
 
       {/* Modal: New Provider */}
       {showProviderModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 font-mono text-xs">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 font-mono text-sm">
           <div className="p-4 rounded border border-[#30363d] bg-[#161b22] w-full max-w-md space-y-3">
             <h3 className="font-bold text-[#c9d1d9] text-sm">ADD AI PROVIDER</h3>
             <form onSubmit={handleCreateProvider} className="space-y-2">
@@ -1164,7 +1164,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
 
       {/* Modal: New Model */}
       {showModelModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 font-mono text-xs">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 font-mono text-sm">
           <div className="p-4 rounded border border-[#30363d] bg-[#161b22] w-full max-w-md space-y-3">
             <h3 className="font-bold text-[#c9d1d9] text-sm">ADD AI MODEL</h3>
             <form onSubmit={handleCreateModel} className="space-y-2">
@@ -1204,7 +1204,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
 
       {/* Modal: Assign / Edit Config Bundle on Role */}
       {showBundleModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 font-mono text-xs">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 font-mono text-sm">
           <div className="p-5 rounded border border-[#30363d] bg-[#161b22] w-full max-w-lg space-y-4 shadow-xl">
             <div className="flex items-center justify-between border-b border-[#30363d] pb-2">
               <h3 className="font-bold text-[#c9d1d9] text-sm">
