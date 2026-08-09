@@ -45,18 +45,18 @@ export class ErrorBoundary extends Component<Props, State> {
                 <h1 className="text-sm font-bold font-mono uppercase tracking-wider">
                   SYSTEM EXECUTION EXCEPTION DETECTED
                 </h1>
-                <p className="text-xs text-rose-300 font-mono">
+                <p className="text-sm text-rose-300 font-mono">
                   Runtime React error boundary caught an unhandled component exception
                 </p>
               </div>
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center space-x-1.5 text-xs text-[#8b949e] font-mono">
+              <div className="flex items-center space-x-1.5 text-sm text-[#8b949e] font-mono">
                 <Terminal className="w-3.5 h-3.5 text-amber-400" />
                 <span>DIAGNOSTIC EXCEPTION STACK:</span>
               </div>
-              <div className="p-3 bg-[#0d1117] border border-[#30363d] rounded text-xs font-mono text-rose-300 overflow-x-auto max-h-48 whitespace-pre-wrap">
+              <div className="p-3 bg-[#0d1117] border border-[#30363d] rounded text-sm font-mono text-rose-300 overflow-x-auto max-h-48 whitespace-pre-wrap">
                 {this.state.error?.toString() || 'Unknown application error'}
                 {this.state.errorInfo?.componentStack && (
                   <span className="text-[#8b949e] block mt-2 pt-2 border-t border-[#30363d]/50">
@@ -72,7 +72,7 @@ export class ErrorBoundary extends Component<Props, State> {
               </span>
               <button
                 onClick={this.handleReset}
-                className="flex items-center space-x-2 bg-rose-600 hover:bg-rose-500 text-white font-mono font-bold text-xs px-4 py-2 rounded transition-all shadow-md active:scale-95"
+                className="flex items-center space-x-2 bg-rose-600 hover:bg-rose-500 text-white font-mono font-bold text-sm px-4 py-2 rounded transition-all shadow-md active:scale-95"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span>RELOAD APPLICATION</span>
