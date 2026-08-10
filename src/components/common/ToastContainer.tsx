@@ -138,7 +138,7 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({
               {/* Main Content */}
               <div className="flex-1 min-w-0 pr-6">
                 <div className="flex items-center space-x-2">
-                  <span className={`text-sm font-bold font-mono ${style.text}`}>
+                  <span className={`text-xs font-bold font-mono ${style.text}`}>
                     {toast.title}
                   </span>
                   <span className="text-[10px] text-slate-400 font-mono">
@@ -146,7 +146,7 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({
                   </span>
                 </div>
 
-                <p className="text-sm text-slate-200 mt-1 leading-snug font-mono break-words">
+                <p className="text-xs text-slate-200 mt-1 leading-snug font-mono break-words">
                   {toast.description}
                 </p>
 

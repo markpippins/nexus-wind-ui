@@ -66,7 +66,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
       case 'modern':
         return `rounded-lg border ${styles.card} shadow-md backdrop-blur-sm transition-all hover:shadow-lg`;
       case 'compact':
-        return `rounded-sm border ${styles.card} p-2 text-sm font-mono`;
+        return `rounded-sm border ${styles.card} p-2 text-xs font-mono`;
       case 'standard':
       default:
         return `rounded border ${styles.card}`;
@@ -547,7 +547,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
           <div className="flex items-center space-x-2 w-full md:w-auto">
             <button
               onClick={() => onNavigateTab('tackle')}
-              className={`flex items-center justify-center space-x-1.5 px-3 py-1.5 rounded text-sm font-bold font-mono transition-all shadow-sm w-full md:w-auto border ${
+              className={`flex items-center justify-center space-x-1.5 px-3 py-1.5 rounded text-xs font-bold font-mono transition-all shadow-sm w-full md:w-auto border ${
                 themeMode === 'light'
                   ? 'bg-blue-100 border-blue-300 text-blue-900 hover:bg-blue-200'
                   : themeMode === 'steel'
@@ -562,7 +562,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
             {activeWorkflowsWithVersion.length > 0 && (
               <button
                 onClick={() => onQuickStartInstance(activeWorkflowsWithVersion[0].versions?.[0]?.id || 'ver-102')}
-                className={`flex items-center justify-center space-x-2 px-3 py-1.5 rounded text-sm font-bold font-mono transition-all shadow-sm active:scale-95 w-full md:w-auto ${styles.accentBtn}`}
+                className={`flex items-center justify-center space-x-2 px-3 py-1.5 rounded text-xs font-bold font-mono transition-all shadow-sm active:scale-95 w-full md:w-auto ${styles.accentBtn}`}
               >
                 <Play className="w-3.5 h-3.5 fill-current" />
                 <span>Start "{activeWorkflowsWithVersion[0].name}"</span>
@@ -732,7 +732,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
           <div>
             <div className="flex items-center space-x-2">
               <Flame className="w-4 h-4 text-amber-500 animate-pulse" />
-              <h2 className={`text-sm font-bold font-mono uppercase tracking-wide ${styles.primaryText}`}>
+              <h2 className={`text-xs font-bold font-mono uppercase tracking-wide ${styles.primaryText}`}>
                 24-HOUR WORKFLOW EXECUTION FREQUENCY HEATMAP
               </h2>
             </div>
@@ -812,7 +812,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                     {item.formattedHour}
                   </span>
 
-                  <span className="text-sm font-mono font-black">
+                  <span className="text-xs font-mono font-black">
                     {item.count}
                   </span>
 
@@ -824,7 +824,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                 </div>
 
                 {/* Tooltip on Hover */}
-                <div className={`pointer-events-none absolute bottom-full mb-2 hidden group-hover:block z-30 w-44 p-2.5 rounded border text-sm font-mono shadow-2xl ${
+                <div className={`pointer-events-none absolute bottom-full mb-2 hidden group-hover:block z-30 w-44 p-2.5 rounded border text-xs font-mono shadow-2xl ${
                   themeMode === 'light' ? 'bg-white border-slate-300 text-slate-900' :
                   themeMode === 'steel' ? 'bg-slate-900 border-slate-700 text-slate-100' :
                   'bg-[#1c2128] border-[#30363d] text-[#c9d1d9]'
@@ -892,7 +892,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
           <div>
             <div className="flex items-center space-x-2">
               <Clock className="w-4 h-4 text-cyan-400 animate-spin" style={{ animationDuration: '8s' }} />
-              <h2 className={`text-sm font-bold font-mono uppercase tracking-wide ${styles.primaryText}`}>
+              <h2 className={`text-xs font-bold font-mono uppercase tracking-wide ${styles.primaryText}`}>
                 FORECASTED WORKFLOW EXECUTION & COMPLETION PROJECTIONS
               </h2>
             </div>
@@ -930,7 +930,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                 <div className="flex items-center justify-between gap-1 mb-2">
                   <div className="flex items-center space-x-1.5 min-w-0">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                    <span className={`font-mono text-sm font-extrabold truncate ${themeMode === 'steel' ? 'text-cyan-400' : 'text-[#58a6ff]'}`}>
+                    <span className={`font-mono text-xs font-extrabold truncate ${themeMode === 'steel' ? 'text-cyan-400' : 'text-[#58a6ff]'}`}>
                       {forecast.instanceId}
                     </span>
                   </div>
@@ -947,7 +947,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
 
                 {/* Workflow Name & Current Step */}
                 <div className="space-y-1">
-                  <div className={`font-mono text-sm font-bold ${styles.primaryText} flex items-center justify-between`}>
+                  <div className={`font-mono text-xs font-bold ${styles.primaryText} flex items-center justify-between`}>
                     <span className="truncate">{forecast.workflowName}</span>
                     <span className={`text-[10px] ${styles.mutedText}`}>{forecast.versionId}</span>
                   </div>
@@ -1026,7 +1026,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
         <div className={`lg:col-span-2 p-4 rounded border ${styles.card}`}>
           <div className={`flex items-center justify-between mb-3 border-b ${styles.border} pb-2`}>
             <div>
-              <h2 className={`text-sm font-bold font-mono uppercase ${styles.primaryText}`}>
+              <h2 className={`text-xs font-bold font-mono uppercase ${styles.primaryText}`}>
                 TICKET & RECEIPT PROCESSING VELOCITY
               </h2>
               <p className={`text-[11px] ${styles.mutedText}`}>Created tickets vs completed receipts throughput</p>
@@ -1074,7 +1074,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
         <div className={`p-4 rounded border ${styles.card} flex flex-col justify-between`}>
           <div>
             <div className="flex items-center justify-between border-b pb-2">
-              <h2 className={`text-sm font-bold font-mono uppercase ${styles.primaryText}`}>
+              <h2 className={`text-xs font-bold font-mono uppercase ${styles.primaryText}`}>
                 INSTANCE RUNTIME STATUS
               </h2>
               <span className="text-[10px] font-mono text-cyan-400 font-semibold bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/30">
@@ -1163,7 +1163,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
           <div>
             <div className="flex items-center space-x-2">
               <BarChart3 className={`w-4 h-4 ${themeMode === 'steel' ? 'text-cyan-400' : 'text-[#58a6ff]'}`} />
-              <h2 className={`text-sm font-bold font-mono uppercase tracking-wide ${styles.primaryText}`}>
+              <h2 className={`text-xs font-bold font-mono uppercase tracking-wide ${styles.primaryText}`}>
                 THROUGHPUT PERFORMANCE
               </h2>
             </div>
@@ -1222,7 +1222,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                   if (active && payload && payload.length) {
                     const data = payload[0].payload;
                     return (
-                      <div className={`p-2.5 rounded border text-sm font-mono shadow-lg space-y-1 ${
+                      <div className={`p-2.5 rounded border text-xs font-mono shadow-lg space-y-1 ${
                         themeMode === 'light' ? 'bg-white border-slate-300 text-slate-900' :
                         themeMode === 'steel' ? 'bg-slate-900 border-slate-700 text-slate-100' :
                         'bg-[#1c2128] border-[#30363d] text-[#c9d1d9]'
@@ -1283,7 +1283,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
           <div>
             <div className="flex items-center space-x-2">
               <span className={`w-2 h-2 rounded-full ${themeMode === 'steel' ? 'bg-cyan-400 animate-ping' : 'bg-blue-500 animate-ping'}`} />
-              <h2 className={`text-sm font-bold font-mono uppercase tracking-wide ${styles.primaryText}`}>
+              <h2 className={`text-xs font-bold font-mono uppercase tracking-wide ${styles.primaryText}`}>
                 30-DAY WORKFLOW INSTANCE COMPLETION RATE TREND
               </h2>
             </div>
@@ -1344,7 +1344,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                   if (active && payload && payload.length) {
                     const data = payload[0].payload;
                     return (
-                      <div className={`p-2.5 rounded border text-sm font-mono shadow-lg space-y-1 ${
+                      <div className={`p-2.5 rounded border text-xs font-mono shadow-lg space-y-1 ${
                         themeMode === 'light' ? 'bg-white border-slate-300 text-slate-900' :
                         themeMode === 'steel' ? 'bg-slate-900 border-slate-700 text-slate-100' :
                         'bg-[#1c2128] border-[#30363d] text-[#c9d1d9]'
@@ -1407,7 +1407,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
             <div className="flex items-center justify-between border-b pb-2 mb-2">
               <div className="flex items-center space-x-2">
                 <Cpu className={`w-4 h-4 ${themeMode === 'steel' ? 'text-cyan-400' : 'text-[#58a6ff]'}`} />
-                <h2 className={`text-sm font-bold font-mono uppercase ${styles.primaryText}`}>
+                <h2 className={`text-xs font-bold font-mono uppercase ${styles.primaryText}`}>
                   RESOURCE UTILIZATION
                 </h2>
               </div>
@@ -1489,7 +1489,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
             <div className="flex items-center justify-between border-b pb-2 mb-2">
               <div className="flex items-center space-x-2">
                 <AlertTriangle className="w-4 h-4 text-amber-400" />
-                <h2 className={`text-sm font-bold font-mono uppercase ${styles.primaryText}`}>
+                <h2 className={`text-xs font-bold font-mono uppercase ${styles.primaryText}`}>
                   EXECUTION ANOMALY
                 </h2>
               </div>
@@ -1515,7 +1515,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                       <span className="text-[11px] font-mono font-bold text-amber-400 shrink-0">
                         #{idx + 1}
                       </span>
-                      <span className={`text-sm font-semibold truncate ${styles.primaryText}`}>
+                      <span className={`text-xs font-semibold truncate ${styles.primaryText}`}>
                         {anomaly.workflowName}
                       </span>
                       <span className="text-[10px] font-mono text-[#8b949e] shrink-0">
@@ -1595,7 +1595,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
         {/* Task Outcome Frequency */}
         <div className={`p-4 rounded border ${styles.card}`}>
           <div className="flex items-center justify-between border-b pb-2">
-            <h2 className={`text-sm font-bold font-mono uppercase ${styles.primaryText}`}>
+            <h2 className={`text-xs font-bold font-mono uppercase ${styles.primaryText}`}>
               TASK OUTCOME FREQUENCY
             </h2>
             <span className="text-[10px] font-mono text-cyan-400 font-semibold bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/30">
@@ -1656,7 +1656,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
             <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2 border-b ${styles.border} pb-2`}>
               <div>
                 <div className="flex items-center space-x-2">
-                  <h2 className={`text-sm font-bold font-mono uppercase ${styles.primaryText}`}>
+                  <h2 className={`text-xs font-bold font-mono uppercase ${styles.primaryText}`}>
                     INTERACTIVE CHART DRILLDOWN: FILTERED INSTANCES
                   </h2>
                   <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${

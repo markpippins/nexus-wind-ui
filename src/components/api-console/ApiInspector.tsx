@@ -55,7 +55,7 @@ export const ApiInspector: React.FC<ApiInspectorProps> = ({ isDark, onRefreshAll
             <Terminal className="w-4 h-4" />
           </div>
           <div>
-            <h1 className="text-sm font-bold font-mono text-[#c9d1d9] uppercase">
+            <h1 className="text-xs font-bold font-mono text-[#c9d1d9] uppercase">
               IDE REST API CONSOLE & REQUEST LOGS
             </h1>
             <p className="text-[11px] text-[#8b949e]">
@@ -65,7 +65,7 @@ export const ApiInspector: React.FC<ApiInspectorProps> = ({ isDark, onRefreshAll
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center space-x-2 font-mono text-sm">
+        <div className="flex items-center space-x-2 font-mono text-xs">
           <button
             onClick={handleResetMockData}
             className="px-2.5 py-1 rounded bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-800 font-bold transition-all flex items-center space-x-1"
@@ -86,7 +86,7 @@ export const ApiInspector: React.FC<ApiInspectorProps> = ({ isDark, onRefreshAll
       </div>
 
       {/* Main Split Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 font-mono text-sm">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 font-mono text-xs">
         {/* Left Col: Request Stream */}
         <div className="p-3.5 rounded border border-[#30363d] bg-[#161b22] flex flex-col space-y-2.5">
           <div className="flex items-center justify-between border-b border-[#30363d] pb-2">
@@ -146,7 +146,7 @@ export const ApiInspector: React.FC<ApiInspectorProps> = ({ isDark, onRefreshAll
             })}
 
             {filteredLogs.length === 0 && (
-              <div className="p-8 text-center text-[#8b949e] italic text-sm">
+              <div className="p-8 text-center text-[#8b949e] italic text-xs">
                 No request logs recorded yet. Interact with the application to stream calls.
               </div>
             )}
@@ -158,8 +158,8 @@ export const ApiInspector: React.FC<ApiInspectorProps> = ({ isDark, onRefreshAll
           <div className="lg:col-span-2 p-3.5 rounded border border-[#30363d] bg-[#161b22] space-y-3">
             <div className="flex items-center justify-between border-b border-[#30363d] pb-2">
               <div className="flex items-center space-x-2">
-                <span className="font-bold text-[#58a6ff] text-sm">{selectedLog.method}</span>
-                <span className="font-bold text-[#c9d1d9] text-sm select-all">{selectedLog.endpoint}</span>
+                <span className="font-bold text-[#58a6ff] text-xs">{selectedLog.method}</span>
+                <span className="font-bold text-[#c9d1d9] text-xs select-all">{selectedLog.endpoint}</span>
               </div>
 
               <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
@@ -206,7 +206,7 @@ export const ApiInspector: React.FC<ApiInspectorProps> = ({ isDark, onRefreshAll
             </div>
           </div>
         ) : (
-          <div className="lg:col-span-2 p-12 rounded border border-[#30363d] bg-[#161b22] text-center text-[#8b949e] italic text-sm">
+          <div className="lg:col-span-2 p-12 rounded border border-[#30363d] bg-[#161b22] text-center text-[#8b949e] italic text-xs">
             Select a log entry on the left to inspect cURL payload, duration, and response body.
           </div>
         )}

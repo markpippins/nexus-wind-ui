@@ -326,7 +326,7 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
             <GitMerge className="w-4 h-4" />
           </div>
           <div>
-            <h1 className="text-sm font-bold font-mono text-[#c9d1d9] uppercase flex items-center space-x-2">
+            <h1 className="text-xs font-bold font-mono text-[#c9d1d9] uppercase flex items-center space-x-2">
               <span>WORKFLOW GRAPH & DAG EDITOR</span>
               <span className="text-[10px] bg-purple-900/50 text-purple-300 px-2 py-0.5 rounded font-mono border border-purple-800">
                 TREE EXPLORER
@@ -342,7 +342,7 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
         <div className="flex items-center space-x-2.5 w-full md:w-auto">
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className={`px-2.5 py-1 rounded text-sm font-mono font-bold border transition-all flex items-center space-x-1.5 ${
+            className={`px-2.5 py-1 rounded text-xs font-mono font-bold border transition-all flex items-center space-x-1.5 ${
               isSidebarOpen ? 'bg-purple-900/40 border-purple-600 text-purple-300' : 'bg-[#0d1117] border-[#30363d] text-[#8b949e] hover:text-white'
             }`}
             title="Toggle Hierarchical Tree Sidebar"
@@ -355,7 +355,7 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
           <select
             value={selectedWorkflowId}
             onChange={(e) => setSelectedWorkflowId(e.target.value)}
-            className="px-2.5 py-1 rounded text-sm font-mono border border-[#30363d] bg-[#0d1117] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff]"
+            className="px-2.5 py-1 rounded text-xs font-mono border border-[#30363d] bg-[#0d1117] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff]"
           >
             {workflows.map(wf => {
               const execCount = countsByWfId[wf.id] || 0;
@@ -371,7 +371,7 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
           {/* New Workflow Button */}
           <button
             onClick={() => setShowCreateWfModal(true)}
-            className="flex items-center space-x-1 px-2.5 py-1 rounded text-sm font-bold font-mono bg-purple-700 hover:bg-purple-600 text-white transition-all shadow-sm"
+            className="flex items-center space-x-1 px-2.5 py-1 rounded text-xs font-bold font-mono bg-purple-700 hover:bg-purple-600 text-white transition-all shadow-sm"
           >
             <Plus className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">WORKFLOW</span>
@@ -383,12 +383,12 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
       <div className="flex flex-col lg:flex-row gap-4 items-start">
         {/* Interactive Hierarchical Tree View Sidebar */}
         <div className={`${isSidebarOpen ? 'w-full lg:w-80 shrink-0' : 'hidden'} transition-all duration-300`}>
-          <div className="p-3 rounded border border-[#30363d] bg-[#161b22] font-mono text-sm space-y-3 shadow-md">
+          <div className="p-3 rounded border border-[#30363d] bg-[#161b22] font-mono text-xs space-y-3 shadow-md">
             {/* Sidebar Header */}
             <div className="flex items-center justify-between border-b border-[#30363d] pb-2">
               <div className="flex items-center space-x-2">
                 <ListTree className="w-4 h-4 text-purple-400" />
-                <span className="font-bold text-[#c9d1d9] text-sm uppercase tracking-wide">
+                <span className="font-bold text-[#c9d1d9] text-xs uppercase tracking-wide">
                   WORKFLOW TREE
                 </span>
               </div>
@@ -508,7 +508,7 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
                         ) : (
                           <Folder className="w-3.5 h-3.5 text-purple-400 shrink-0" />
                         )}
-                        <span className="truncate text-sm">{wf.name}</span>
+                        <span className="truncate text-xs">{wf.name}</span>
                       </div>
 
                       <div className="flex items-center space-x-1.5 shrink-0 text-[9px]">
@@ -688,7 +688,7 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
               })}
 
               {workflows.length === 0 && (
-                <div className="text-center py-6 text-[#8b949e] text-sm">
+                <div className="text-center py-6 text-[#8b949e] text-xs">
                   No workflows found.
                 </div>
               )}
@@ -702,7 +702,7 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
           {activeWorkflow && (
             <div className="p-2.5 rounded border border-[#30363d] bg-[#161b22] flex flex-wrap items-center justify-between gap-2.5">
               {/* Version Pills */}
-              <div className="flex items-center space-x-2 font-mono text-sm overflow-x-auto">
+              <div className="flex items-center space-x-2 font-mono text-xs overflow-x-auto">
                 <span className="text-[#8b949e] font-bold text-[10px] uppercase mr-1 flex items-center space-x-1.5">
                   <span>VERSIONS:</span>
                   {(() => {
@@ -811,7 +811,7 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
 
       {/* Graph Integrity & Structural Validation Alerts */}
       {selectedVersion && (validationResult || structuralResult) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm font-mono">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono">
           {/* Integrity validation */}
           <div className={`p-2.5 rounded border ${
             validationResult?.valid
@@ -919,7 +919,7 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
 
                     {/* Node Title & Task name */}
                     <div className="space-y-0.5">
-                      <h3 className="font-bold font-mono text-sm text-[#58a6ff] tracking-tight">
+                      <h3 className="font-bold font-mono text-xs text-[#58a6ff] tracking-tight">
                         {node.name}
                       </h3>
                       <p className="text-[11px] text-[#c9d1d9] flex items-center font-medium">
@@ -964,10 +964,10 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
               {selectedVersion.nodes?.length === 0 && (
                 <div className="col-span-full py-16 text-center text-[#8b949e] space-y-3">
                   <GitMerge className="w-10 h-10 mx-auto text-[#484f58]" />
-                  <p className="font-mono text-sm">No nodes defined in Version v{selectedVersion.version_number}.</p>
+                  <p className="font-mono text-xs">No nodes defined in Version v{selectedVersion.version_number}.</p>
                   <button
                     onClick={() => setShowAddNodeModal(true)}
-                    className="px-3 py-1.5 bg-[#238636] hover:bg-[#2ea043] text-white font-bold rounded text-sm font-mono"
+                    className="px-3 py-1.5 bg-[#238636] hover:bg-[#2ea043] text-white font-bold rounded text-xs font-mono"
                   >
                     + Add First Node
                   </button>
@@ -977,11 +977,11 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
 
             {/* Selected Node Details Drawer */}
             {selectedNode && (
-              <div className="p-3.5 rounded border border-[#30363d] bg-[#161b22] font-mono text-sm space-y-2.5">
+              <div className="p-3.5 rounded border border-[#30363d] bg-[#161b22] font-mono text-xs space-y-2.5">
                 <div className="flex items-center justify-between border-b border-[#30363d] pb-2">
                   <div className="flex items-center space-x-2">
                     <Code2 className="w-4 h-4 text-[#58a6ff]" />
-                    <span className="font-bold text-[#c9d1d9] text-sm">NODE INSPECTOR: {selectedNode.name}</span>
+                    <span className="font-bold text-[#c9d1d9] text-xs">NODE INSPECTOR: {selectedNode.name}</span>
                   </div>
                   <button onClick={() => setSelectedNode(null)} className="text-[#8b949e] hover:text-white">
                     <X className="w-4 h-4" />
@@ -1012,7 +1012,7 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
           </div>
         </div>
       ) : (
-        <div className="p-12 text-center text-[#8b949e] font-mono text-sm flex-1 w-full bg-[#161b22] border border-[#30363d] rounded">
+        <div className="p-12 text-center text-[#8b949e] font-mono text-xs flex-1 w-full bg-[#161b22] border border-[#30363d] rounded">
           Select a workflow above or create one to begin building graph nodes.
         </div>
       )}
@@ -1024,13 +1024,13 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
           <div className="p-5 rounded border border-[#30363d] max-w-md w-full font-sans space-y-3 bg-[#161b22] text-[#c9d1d9]">
             <div className="flex items-center justify-between border-b border-[#30363d] pb-2">
-              <h3 className="font-bold font-mono text-sm text-white">CREATE WORKFLOW PIPELINE</h3>
+              <h3 className="font-bold font-mono text-xs text-white">CREATE WORKFLOW PIPELINE</h3>
               <button onClick={() => setShowCreateWfModal(false)} className="text-[#8b949e] hover:text-white">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateWorkflow} className="space-y-3 text-sm">
+            <form onSubmit={handleCreateWorkflow} className="space-y-3 text-xs">
               <div>
                 <label className="block text-[#8b949e] font-mono font-semibold mb-1 text-[11px]">WORKFLOW NAME</label>
                 <input
@@ -1079,13 +1079,13 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
           <div className="p-5 rounded border border-[#30363d] max-w-md w-full font-sans space-y-3 bg-[#161b22] text-[#c9d1d9]">
             <div className="flex items-center justify-between border-b border-[#30363d] pb-2">
-              <h3 className="font-bold font-mono text-sm text-white">ADD GRAPH NODE</h3>
+              <h3 className="font-bold font-mono text-xs text-white">ADD GRAPH NODE</h3>
               <button onClick={() => setShowAddNodeModal(false)} className="text-[#8b949e] hover:text-white">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleAddNode} className="space-y-3 text-sm">
+            <form onSubmit={handleAddNode} className="space-y-3 text-xs">
               <div>
                 <label className="block text-[#8b949e] font-mono font-semibold mb-1 text-[11px]">NODE NAME</label>
                 <input
@@ -1162,13 +1162,13 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
           <div className="p-5 rounded border border-[#30363d] max-w-md w-full font-sans space-y-3 bg-[#161b22] text-[#c9d1d9]">
             <div className="flex items-center justify-between border-b border-[#30363d] pb-2">
-              <h3 className="font-bold font-mono text-sm text-white">CONNECT DIRECTED EDGE</h3>
+              <h3 className="font-bold font-mono text-xs text-white">CONNECT DIRECTED EDGE</h3>
               <button onClick={() => setShowAddEdgeModal(false)} className="text-[#8b949e] hover:text-white">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleAddEdge} className="space-y-3 text-sm">
+            <form onSubmit={handleAddEdge} className="space-y-3 text-xs">
               <div>
                 <label className="block text-[#8b949e] font-mono font-semibold mb-1 text-[11px]">FROM NODE</label>
                 <select

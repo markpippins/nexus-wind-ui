@@ -272,6 +272,7 @@ export default function App() {
           {activeTab === 'tackle' && (
             <TackleManager
               isDark={isDark}
+              themeMode={themeMode}
               onRefreshAll={loadAllData}
             />
           )}
@@ -282,6 +283,7 @@ export default function App() {
               tasks={tasks}
               instances={instances}
               isDark={isDark}
+              themeMode={themeMode}
               onRefresh={loadAllData}
               onStartInstance={handleQuickStartInstance}
             />
@@ -305,6 +307,7 @@ export default function App() {
               titles={titles}
               tasks={tasks}
               isDark={isDark}
+              themeMode={themeMode}
               onRefresh={loadAllData}
               onNavigateInstance={handleNavigateInstance}
             />
@@ -335,6 +338,7 @@ export default function App() {
               outcomes={outcomes}
               roles={roles}
               isDark={isDark}
+              themeMode={themeMode}
               onRefresh={loadAllData}
             />
           )}
@@ -343,6 +347,7 @@ export default function App() {
             <GraphValidator
               workflows={workflows}
               isDark={isDark}
+              themeMode={themeMode}
               onRefresh={loadAllData}
             />
           )}
@@ -350,6 +355,7 @@ export default function App() {
           {activeTab === 'api-console' && (
             <ApiInspector
               isDark={isDark}
+              themeMode={themeMode}
               onRefreshAll={loadAllData}
             />
           )}

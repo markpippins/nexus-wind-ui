@@ -72,7 +72,7 @@ export const BrandingBox: React.FC<BrandingBoxProps> = ({
     'bg-[#1c2128] border-[#2d333b] text-[#d1d5db]';
 
   return (
-    <header className={`h-12 border-b flex items-center justify-between px-3 select-none text-sm font-mono shrink-0 transition-colors duration-150 ${headerBgClass}`}>
+    <header className={`h-12 border-b flex items-center justify-between px-3 select-none text-xs font-mono shrink-0 transition-colors duration-150 ${headerBgClass}`}>
       {/* Top-Left Branding Box & Breadcrumbs */}
       <div className="flex items-center space-x-3 overflow-hidden flex-1 mr-4">
         {/* Branding Box */}
@@ -80,7 +80,7 @@ export const BrandingBox: React.FC<BrandingBoxProps> = ({
           <div className="bg-[#3b82f6] text-white font-bold px-1.5 py-0.5 rounded-sm text-[10px] tracking-tighter">
             WIND
           </div>
-          <span className="text-sm font-semibold tracking-wide text-white uppercase font-sans">
+          <span className="text-xs font-semibold tracking-wide text-white uppercase font-sans">
             wind-srv
           </span>
           <span className="text-[10px] bg-[#21262d] text-[#8b949e] px-1.5 py-0.5 rounded border border-[#30363d]">

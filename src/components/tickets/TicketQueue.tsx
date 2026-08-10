@@ -67,7 +67,7 @@ export const TicketQueue: React.FC<TicketQueueProps> = ({
             <Ticket className="w-4 h-4" />
           </div>
           <div>
-            <h1 className="text-sm font-bold font-mono text-[#c9d1d9] uppercase">
+            <h1 className="text-xs font-bold font-mono text-[#c9d1d9] uppercase">
               HIGH-CONTRAST TICKET EXECUTION QUEUE
             </h1>
             <p className="text-[11px] text-[#8b949e]">
@@ -80,7 +80,7 @@ export const TicketQueue: React.FC<TicketQueueProps> = ({
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setIsCompact(!isCompact)}
-            className="px-2 py-1 rounded border border-[#30363d] bg-[#0d1117] text-[#c9d1d9] hover:text-white text-sm font-mono font-semibold flex items-center space-x-1"
+            className="px-2 py-1 rounded border border-[#30363d] bg-[#0d1117] text-[#c9d1d9] hover:text-white text-xs font-mono font-semibold flex items-center space-x-1"
             title="Toggle Row Density"
           >
             {isCompact ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
@@ -107,14 +107,14 @@ export const TicketQueue: React.FC<TicketQueueProps> = ({
               placeholder="Search ID, task, title or instance..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-2.5 py-1 rounded text-sm font-mono border border-[#30363d] bg-[#0d1117] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff]"
+              className="w-full pl-8 pr-2.5 py-1 rounded text-xs font-mono border border-[#30363d] bg-[#0d1117] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff]"
             />
           </div>
 
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-2.5 py-1 rounded text-sm font-mono border border-[#30363d] bg-[#0d1117] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff]"
+            className="px-2.5 py-1 rounded text-xs font-mono border border-[#30363d] bg-[#0d1117] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff]"
           >
             <option value="">All Statuses ({tickets.length})</option>
             <option value="PENDING">PENDING</option>
@@ -126,7 +126,7 @@ export const TicketQueue: React.FC<TicketQueueProps> = ({
           <select
             value={titleFilter}
             onChange={(e) => setTitleFilter(e.target.value)}
-            className="px-2.5 py-1 rounded text-sm font-mono border border-[#30363d] bg-[#0d1117] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff]"
+            className="px-2.5 py-1 rounded text-xs font-mono border border-[#30363d] bg-[#0d1117] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff]"
           >
             <option value="">All Assigned Titles</option>
             {titles.map(t => (
@@ -145,7 +145,7 @@ export const TicketQueue: React.FC<TicketQueueProps> = ({
       {/* High Density High Contrast Data Table */}
       <div className="rounded border border-[#30363d] bg-[#161b22] overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-sm font-mono">
+          <table className="w-full text-left border-collapse text-xs font-mono">
             <thead>
               <tr className="bg-[#1c2128] text-[#8b949e] border-b border-[#30363d] select-none text-[10px]">
                 <th className="py-2 px-3 font-bold uppercase tracking-wider">TICKET ID</th>
@@ -235,7 +235,7 @@ export const TicketQueue: React.FC<TicketQueueProps> = ({
 
               {filteredTickets.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#8b949e] italic text-sm">
+                  <td colSpan={7} className="py-12 text-center text-[#8b949e] italic text-xs">
                     No tickets found matching the search and filter constraints.
                   </td>
                 </tr>

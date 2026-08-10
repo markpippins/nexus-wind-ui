@@ -192,7 +192,7 @@ export const OfficeManager: React.FC<OfficeManagerProps> = ({
             <Building2 className="w-4 h-4" />
           </div>
           <div>
-            <h1 className="text-sm font-bold font-mono text-[#c9d1d9] uppercase">
+            <h1 className="text-xs font-bold font-mono text-[#c9d1d9] uppercase">
               OFFICES, TITLES & TASK SCHEMAS
             </h1>
             <p className="text-[11px] text-[#8b949e]">
@@ -202,7 +202,7 @@ export const OfficeManager: React.FC<OfficeManagerProps> = ({
         </div>
 
         {/* Sub-tab navigation */}
-        <div className="flex items-center space-x-1.5 font-mono text-sm">
+        <div className="flex items-center space-x-1.5 font-mono text-xs">
           <button
             onClick={() => setActiveSubTab('offices')}
             className={`px-2.5 py-1 rounded text-[11px] font-bold border transition-all ${
@@ -245,7 +245,7 @@ export const OfficeManager: React.FC<OfficeManagerProps> = ({
             <span className="text-[11px] font-mono font-bold text-[#8b949e] uppercase">OFFICES REGISTRY</span>
             <button
               onClick={() => setShowOfficeModal(true)}
-              className="px-2.5 py-1 rounded bg-[#238636] hover:bg-[#2ea043] text-white text-sm font-bold font-mono flex items-center space-x-1"
+              className="px-2.5 py-1 rounded bg-[#238636] hover:bg-[#2ea043] text-white text-xs font-bold font-mono flex items-center space-x-1"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>NEW OFFICE</span>
@@ -256,7 +256,7 @@ export const OfficeManager: React.FC<OfficeManagerProps> = ({
             {offices.map(off => (
               <div key={off.id} className="p-3.5 rounded border border-[#30363d] bg-[#161b22] font-sans space-y-2 relative group">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-sm font-bold text-[#58a6ff]">{off.id}</span>
+                  <span className="font-mono text-xs font-bold text-[#58a6ff]">{off.id}</span>
                   <button
                     onClick={() => handleDeleteOffice(off.id)}
                     className="opacity-0 group-hover:opacity-100 p-1 text-[#8b949e] hover:text-rose-400 transition-opacity"
@@ -267,7 +267,7 @@ export const OfficeManager: React.FC<OfficeManagerProps> = ({
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-bold text-[#c9d1d9]">{off.name}</h3>
+                  <h3 className="text-xs font-bold text-[#c9d1d9]">{off.name}</h3>
                   <p className="text-[11px] text-[#8b949e] mt-0.5">{off.description || 'No description provided'}</p>
                 </div>
 
@@ -296,7 +296,7 @@ export const OfficeManager: React.FC<OfficeManagerProps> = ({
                 setTitleRoleId(roles[0]?.id || '');
                 setShowTitleModal(true);
               }}
-              className="px-2.5 py-1 rounded bg-[#238636] hover:bg-[#2ea043] text-white text-sm font-bold font-mono flex items-center space-x-1"
+              className="px-2.5 py-1 rounded bg-[#238636] hover:bg-[#2ea043] text-white text-xs font-bold font-mono flex items-center space-x-1"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>NEW TITLE</span>
@@ -304,7 +304,7 @@ export const OfficeManager: React.FC<OfficeManagerProps> = ({
           </div>
 
           <div className="rounded border border-[#30363d] bg-[#161b22] overflow-hidden">
-            <table className="w-full text-left border-collapse text-sm font-mono">
+            <table className="w-full text-left border-collapse text-xs font-mono">
               <thead>
                 <tr className="bg-[#1c2128] text-[#8b949e] border-b border-[#30363d] text-[10px]">
                   <th className="py-2 px-3 font-semibold uppercase">TITLE ID</th>
@@ -353,7 +353,7 @@ export const OfficeManager: React.FC<OfficeManagerProps> = ({
                 setTaskTitleId(titles[0].id);
                 setShowTaskModal(true);
               }}
-              className="px-2.5 py-1 rounded bg-[#238636] hover:bg-[#2ea043] text-white text-sm font-bold font-mono flex items-center space-x-1"
+              className="px-2.5 py-1 rounded bg-[#238636] hover:bg-[#2ea043] text-white text-xs font-bold font-mono flex items-center space-x-1"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>NEW TASK</span>
@@ -378,14 +378,14 @@ export const OfficeManager: React.FC<OfficeManagerProps> = ({
                         : 'bg-[#0d1117]/60 border-[#30363d] hover:border-[#8b949e]'
                     }`}
                   >
-                    <div className="flex items-center justify-between font-mono text-sm">
+                    <div className="flex items-center justify-between font-mono text-xs">
                       <span className="font-bold text-[#58a6ff] text-[11px]">{tsk.id}</span>
                       <button onClick={(e) => { e.stopPropagation(); handleDeleteTask(tsk.id); }} className="text-[#8b949e] hover:text-rose-400">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
 
-                    <h4 className="font-bold text-sm text-[#c9d1d9] mt-0.5">{tsk.name}</h4>
+                    <h4 className="font-bold text-xs text-[#c9d1d9] mt-0.5">{tsk.name}</h4>
                     <p className="text-[11px] text-[#8b949e] mt-0.5">{tsk.description}</p>
 
                     <div className="mt-2 pt-2 border-t border-[#30363d] flex items-center justify-between text-[10px] font-mono text-[#8b949e]">
@@ -400,7 +400,7 @@ export const OfficeManager: React.FC<OfficeManagerProps> = ({
             {/* Selected Task Details & Outcomes Editor */}
             {selectedTask ? (
               <div className="p-3.5 rounded border border-[#30363d] bg-[#161b22] space-y-3">
-                <div className="flex items-center justify-between border-b border-[#30363d] pb-2 font-mono text-sm">
+                <div className="flex items-center justify-between border-b border-[#30363d] pb-2 font-mono text-xs">
                   <span className="font-bold text-[#58a6ff] text-[11px]">INPUT SPEC: {selectedTask.name}</span>
                   <button
                     onClick={() => {
@@ -413,7 +413,7 @@ export const OfficeManager: React.FC<OfficeManagerProps> = ({
                   </button>
                 </div>
 
-                <div className="space-y-1 font-mono text-sm">
+                <div className="space-y-1 font-mono text-xs">
                   <span className="text-[#8b949e] font-semibold block text-[11px]">input_spec JSON:</span>
                   <pre className="p-2 rounded bg-[#0d1117] text-green-400 overflow-x-auto text-[10px] border border-[#30363d]">
                     {JSON.stringify(selectedTask.input_spec || {}, null, 2)}
@@ -427,7 +427,7 @@ export const OfficeManager: React.FC<OfficeManagerProps> = ({
 
                   <div className="space-y-1.5">
                     {selectedTask.outcomes?.map(out => (
-                      <div key={out.id} className="p-2 rounded bg-[#0d1117] border border-[#30363d] font-mono text-sm space-y-1">
+                      <div key={out.id} className="p-2 rounded bg-[#0d1117] border border-[#30363d] font-mono text-xs space-y-1">
                         <div className="flex items-center justify-between">
                           <span className="font-bold text-green-400 text-[11px]">{out.code}</span>
                           <button onClick={() => handleDeleteOutcome(out.id)} className="text-[#8b949e] hover:text-rose-400">
@@ -444,7 +444,7 @@ export const OfficeManager: React.FC<OfficeManagerProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="p-8 rounded border border-[#30363d] bg-[#161b22] text-center text-[#8b949e] font-mono text-sm italic">
+              <div className="p-8 rounded border border-[#30363d] bg-[#161b22] text-center text-[#8b949e] font-mono text-xs italic">
                 Select a task on the left to view input_spec and add outcome codes.
               </div>
             )}
@@ -454,9 +454,9 @@ export const OfficeManager: React.FC<OfficeManagerProps> = ({
 
       {/* CREATE OFFICE MODAL */}
       {showOfficeModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 font-mono text-sm">
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 font-mono text-xs">
           <div className="p-5 rounded border border-[#30363d] max-w-md w-full bg-[#161b22] text-[#c9d1d9] space-y-3">
-            <h3 className="font-bold text-sm text-[#58a6ff]">CREATE OFFICE</h3>
+            <h3 className="font-bold text-xs text-[#58a6ff]">CREATE OFFICE</h3>
             <form onSubmit={handleCreateOffice} className="space-y-3">
               <div>
                 <label className="block text-[#8b949e] mb-1 text-[11px]">OFFICE NAME</label>
@@ -488,9 +488,9 @@ export const OfficeManager: React.FC<OfficeManagerProps> = ({
 
       {/* CREATE TITLE MODAL */}
       {showTitleModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 font-mono text-sm">
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 font-mono text-xs">
           <div className="p-5 rounded border border-[#30363d] max-w-md w-full bg-[#161b22] text-[#c9d1d9] space-y-3">
-            <h3 className="font-bold text-sm text-[#58a6ff]">CREATE TITLE</h3>
+            <h3 className="font-bold text-xs text-[#58a6ff]">CREATE TITLE</h3>
             <form onSubmit={handleCreateTitle} className="space-y-3">
               <div>
                 <label className="block text-[#8b949e] mb-1 text-[11px]">OFFICE</label>
@@ -533,9 +533,9 @@ export const OfficeManager: React.FC<OfficeManagerProps> = ({
 
       {/* CREATE TASK MODAL */}
       {showTaskModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 font-mono text-sm">
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 font-mono text-xs">
           <div className="p-5 rounded border border-[#30363d] max-w-md w-full bg-[#161b22] text-[#c9d1d9] space-y-3">
-            <h3 className="font-bold text-sm text-[#58a6ff]">CREATE TASK</h3>
+            <h3 className="font-bold text-xs text-[#58a6ff]">CREATE TASK</h3>
             <form onSubmit={handleCreateTask} className="space-y-3">
               <div>
                 <label className="block text-[#8b949e] mb-1 text-[11px]">OFFICE</label>
@@ -587,9 +587,9 @@ export const OfficeManager: React.FC<OfficeManagerProps> = ({
 
       {/* CREATE OUTCOME MODAL */}
       {showOutcomeModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 font-mono text-sm">
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 font-mono text-xs">
           <div className="p-5 rounded border border-[#30363d] max-w-md w-full bg-[#161b22] text-[#c9d1d9] space-y-3">
-            <h3 className="font-bold text-sm text-[#58a6ff]">ADD TASK OUTCOME CODE</h3>
+            <h3 className="font-bold text-xs text-[#58a6ff]">ADD TASK OUTCOME CODE</h3>
             <form onSubmit={handleCreateOutcome} className="space-y-3">
               <div>
                 <label className="block text-[#8b949e] mb-1 text-[11px]">OUTCOME CODE</label>
