@@ -74,6 +74,19 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
     metadata: { failover_trigger: 'rate_limit_429' }
   });
 
+  // Models toolbar state
+  const [modelSearch, setModelSearch] = useState('');
+  const [modelSort, setModelSort] = useState<'name' | 'provider' | 'verified' | 'date'>('name');
+  const [modelSortAsc, setModelSortAsc] = useState(true);
+  const [modelFilterProvider, setModelFilterProvider] = useState<string>('all');
+  const [modelFilterHarness, setModelFilterHarness] = useState<string>('all');
+  const [modelFilterVerified, setModelFilterVerified] = useState<'all' | 'verified' | 'unverified'>('all');
+  const [modelFilterAssigned, setModelFilterAssigned] = useState<'all' | 'assigned' | 'unassigned'>('all');
+
+  // Verify-model state
+  const [verifyingId, setVerifyingId] = useState<string | null>(null);
+  const [verifyOutcome, setVerifyOutcome] = useState<Record<string, { ok: boolean; message: string }>>({});
+
   const [loading, setLoading] = useState<boolean>(false);
 
   const loadTackleData = useCallback(async () => {
@@ -331,10 +344,77 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
     }
   };
 
+  const handleVerifyModel = async (m: AIModel) => {
+    if (verifyingId) return;
+    if (!confirm(`Run verification inference against "${m.name}" (${m.model_identifier})?\nOn success the model becomes VERIFIED and its bundles are re-armed.`)) return;
+    setVerifyingId(m.id);
+    setVerifyOutcome(prev => { const n = { ...prev }; delete n[m.id]; return n; });
+    try {
+      const started = await api.verifyModel(m.id);
+      if (started?.alreadyVerified) {
+        setVerifyOutcome(prev => ({ ...prev, [m.id]: { ok: true, message: 'Already verified' } }));
+        return;
+      }
+      const sessionId: string | undefined = started?.sessionId;
+      if (!sessionId) throw new Error('No verify session returned');
+      const deadline = Date.now() + 180_000;
+      let status: any = null;
+      do {
+        await new Promise(r => setTimeout(r, 1500));
+        status = await api.verifyStatus(sessionId);
+      } while (status?.running && Date.now() < deadline);
+      const ok = status?.exit_code === 0;
+      setVerifyOutcome(prev => ({ ...prev, [m.id]: {
+        ok: !!ok,
+        message: ok ? 'Verified — model is now selectable and bundles re-armed'
+          : `Failed (exit ${status?.exit_code ?? '?'}) — check session log`
+      } }));
+    } catch (err: any) {
+      setVerifyOutcome(prev => ({ ...prev, [m.id]: { ok: false, message: `Verify failed: ${err instanceof Error ? err.message : String(err)}` } }));
+    } finally {
+      setVerifyingId(null);
+      try { await loadTackleData(); } catch { /* best-effort */ }
+    }
+  };
+
   // Get active bundles for selected role sorted by priority descending
   const currentRoleBundles = bundles
     .filter(b => b.role.toLowerCase() === selectedRole.toLowerCase())
     .sort((a, b) => b.priority - a.priority);
+
+  // Derived: filtered + sorted models
+  const assignedModelIds = new Set(bundles.map(b => b.model_id).filter(Boolean));
+  const uniqueProviderIds = [...new Set(models.map(m => m.provider_id).filter(Boolean))];
+  const uniqueHarnessIds = [...new Set(models.map(m => m.harness_id).filter(Boolean))];
+
+  const filteredModels = models
+    .filter(m => {
+      if (modelSearch) {
+        const q = modelSearch.toLowerCase();
+        const provObj = providers.find(p => p.id === m.provider_id);
+        const harnObj = harnesses.find(h => h.id === m.harness_id);
+        const haystack = [m.name, m.id, m.model_identifier, provObj?.name || '', harnObj?.name || ''].join(' ').toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      if (modelFilterProvider !== 'all' && m.provider_id !== modelFilterProvider) return false;
+      if (modelFilterHarness !== 'all' && m.harness_id !== modelFilterHarness) return false;
+      if (modelFilterVerified === 'verified' && !m.verified) return false;
+      if (modelFilterVerified === 'unverified' && m.verified) return false;
+      if (modelFilterAssigned === 'assigned' && !assignedModelIds.has(m.id)) return false;
+      if (modelFilterAssigned === 'unassigned' && assignedModelIds.has(m.id)) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      let cmp = 0;
+      if (modelSort === 'name') cmp = a.name.localeCompare(b.name);
+      else if (modelSort === 'provider') {
+        const pa = providers.find(p => p.id === a.provider_id)?.name || '';
+        const pb = providers.find(p => p.id === b.provider_id)?.name || '';
+        cmp = pa.localeCompare(pb) || a.name.localeCompare(b.name);
+      } else if (modelSort === 'verified') cmp = (a.verified ? 0 : 1) - (b.verified ? 0 : 1);
+      else if (modelSort === 'date') cmp = new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+      return modelSortAsc ? cmp : -cmp;
+    });
 
   return (
     <div className="p-4 space-y-4 max-w-[1600px] mx-auto font-sans bg-[#0b0e14]">
@@ -501,6 +581,11 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
                         Delete
                       </button>
                     </div>
+                    {p.config_json && Object.keys(p.config_json).length > 0 && (
+                      <pre className="text-[9px] text-zinc-400 bg-black/40 p-1 rounded overflow-x-auto max-h-12">
+                        {JSON.stringify(p.config_json, null, 1)}
+                      </pre>
+                    )}
                   </div>
                 ))}
               </div>
@@ -516,17 +601,23 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
               </div>
 
               <div className="space-y-2 max-h-56 overflow-y-auto">
-                {harnesses.map(h => (
-                  <div key={h.id} className="p-2.5 rounded bg-[#0d1117] border border-[#30363d] space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-[#c9d1d9] text-[11px]">{h.name}</span>
-                      <span className="text-[10px] text-[#8b949e] font-mono">{h.id}</span>
+                {harnesses.map(h => {
+                  const sem = h.invocation_semantics || {};
+                  return (
+                    <div key={h.id} className="p-2.5 rounded bg-[#0d1117] border border-[#30363d] space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-[#c9d1d9] text-[11px]">{h.name}</span>
+                        <span className="text-[10px] text-[#8b949e] font-mono">{h.id}</span>
+                      </div>
+                      <div className="flex gap-2 text-[9px]">
+                        <span className={sem.supports_streaming ? 'text-green-400' : 'text-zinc-500'}>Stream: {sem.supports_streaming ? '✓' : '✗'}</span>
+                        <span className={sem.supports_function_calling ? 'text-green-400' : 'text-zinc-500'}>Tools: {sem.supports_function_calling ? '✓' : '✗'}</span>
+                        <span className={sem.supports_vision ? 'text-green-400' : 'text-zinc-500'}>Vision: {sem.supports_vision ? '✓' : '✗'}</span>
+                        <span className="text-cyan-300">{sem.timeout_default_ms || 30000}ms</span>
+                      </div>
                     </div>
-                    <p className="text-[10px] text-green-300 font-mono bg-black/40 p-1 rounded overflow-x-auto">
-                      {h.invocation_semantics}
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -546,22 +637,89 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
                 </button>
               </div>
 
+              {/* Search + Sort + Filters toolbar */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                <input type="text" value={modelSearch} onChange={e => setModelSearch(e.target.value)}
+                  placeholder="Search…"
+                  className="flex-1 min-w-[120px] px-2 py-1 rounded border border-[#30363d] bg-[#0d1117] text-[#c9d1d9] text-[10px]" />
+                <select value={`${modelSort}-${modelSortAsc}`} onChange={e => { const [s, d] = e.target.value.split('-'); setModelSort(s as any); setModelSortAsc(d === 'true'); }}
+                  className="px-1.5 py-1 rounded border border-[#30363d] bg-[#0d1117] text-[#c9d1d9] text-[10px]">
+                  <option value="name-true">Name A→Z</option>
+                  <option value="name-false">Name Z→A</option>
+                  <option value="provider-true">Provider</option>
+                  <option value="verified-false">Verified first</option>
+                  <option value="date-false">Newest</option>
+                </select>
+                <select value={modelFilterProvider} onChange={e => setModelFilterProvider(e.target.value)}
+                  className="px-1.5 py-1 rounded border border-[#30363d] bg-[#0d1117] text-[#c9d1d9] text-[10px]">
+                  <option value="all">All providers</option>
+                  {uniqueProviderIds.map(pid => { const p = providers.find(pr => pr.id === pid); return <option key={pid} value={pid}>{p?.name || pid}</option>; })}
+                </select>
+                <select value={modelFilterHarness} onChange={e => setModelFilterHarness(e.target.value)}
+                  className="px-1.5 py-1 rounded border border-[#30363d] bg-[#0d1117] text-[#c9d1d9] text-[10px]">
+                  <option value="all">All harnesses</option>
+                  {uniqueHarnessIds.map(hid => { const h = harnesses.find(hr => hr.id === hid); return <option key={hid} value={hid}>{h?.name || hid}</option>; })}
+                </select>
+                <select value={modelFilterVerified} onChange={e => setModelFilterVerified(e.target.value as any)}
+                  className="px-1.5 py-1 rounded border border-[#30363d] bg-[#0d1117] text-[#c9d1d9] text-[10px]">
+                  <option value="all">All status</option>
+                  <option value="verified">Verified</option>
+                  <option value="unverified">Unverified</option>
+                </select>
+                <select value={modelFilterAssigned} onChange={e => setModelFilterAssigned(e.target.value as any)}
+                  className="px-1.5 py-1 rounded border border-[#30363d] bg-[#0d1117] text-[#c9d1d9] text-[10px]">
+                  <option value="all">All assignment</option>
+                  <option value="assigned">Assigned</option>
+                  <option value="unassigned">Unassigned</option>
+                </select>
+                <span className="text-[9px] text-[#8b949e]">{filteredModels.length}/{models.length}</span>
+              </div>
+
               <div className="space-y-2 max-h-56 overflow-y-auto">
-                {models.map(m => (
+                {filteredModels.map(m => (
                   <div key={m.id} className="p-2.5 rounded bg-[#0d1117] border border-[#30363d] space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-[#c9d1d9] text-[11px]">{m.name}</span>
+                      <span className="font-bold text-[#c9d1d9] text-[11px] flex items-center gap-1.5">
+                        {m.name}
+                        <span className={`text-[8px] font-mono px-1 py-0.5 rounded font-bold uppercase border ${
+                          m.verified
+                            ? 'bg-green-950/50 text-green-300 border-green-800/40'
+                            : 'bg-amber-950/50 text-amber-300 border-amber-800/40'
+                        }`}>
+                          {m.verified ? '✓ VERIFIED' : 'UNVERIFIED'}
+                        </span>
+                      </span>
                       <span className="text-[10px] text-purple-300 font-bold">{m.model_identifier}</span>
                     </div>
                     <div className="flex items-center justify-between text-[10px] text-[#8b949e]">
                       <span>Harness: {m.harness_id}</span>
-                      <button
-                        onClick={() => api.deleteAIModel(m.id).then(loadTackleData)}
-                        className="text-rose-400 hover:underline"
-                      >
-                        Delete
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleVerifyModel(m)}
+                          disabled={!!verifyingId || !!m.verified}
+                          className={`px-1.5 py-0.5 rounded text-[9px] font-bold border transition ${
+                            m.verified ? 'bg-green-950/40 text-green-400 border-green-800/50 cursor-default'
+                            : verifyingId === m.id ? 'bg-[#161b22] border-[#58a6ff] text-[#58a6ff] cursor-wait'
+                            : 'bg-amber-950/30 border-amber-800/50 text-amber-300 hover:border-amber-500/70 cursor-pointer'
+                          }`}
+                        >
+                          {m.verified ? 'Verified' : verifyingId === m.id ? 'Verifying…' : 'Verify'}
+                        </button>
+                        <button
+                          onClick={() => api.deleteAIModel(m.id).then(loadTackleData)}
+                          className="text-rose-400 hover:underline"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
+                    {verifyOutcome[m.id] && (
+                      <div className={`text-[9px] font-mono px-2 py-0.5 rounded ${
+                        verifyOutcome[m.id].ok ? 'bg-green-950/30 text-green-300' : 'bg-rose-950/30 text-rose-300'
+                      }`}>
+                        {verifyOutcome[m.id].message}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

@@ -5,7 +5,7 @@ export type ApiMode = 'MOCK' | 'LIVE';
 
 class ApiService {
   private mode: ApiMode = 'MOCK';
-  private baseUrl: string = 'http://localhost:3300';
+  private baseUrl: string = 'http://localhost:3410';
   private logs: ApiLog[] = [];
   private listeners: ((logs: ApiLog[]) => void)[] = [];
 
@@ -465,6 +465,18 @@ class ApiService {
 
   public testAIInvocation(data: { model_id: string; test_prompt: string }) {
     return this.request('POST', '/config/ai/test', () => mockBackend.testAIInvocation(data.model_id, data.test_prompt), data);
+  }
+
+  public verifyModel(modelId: string, prompt?: string) {
+    return this.request('POST', '/config/ai/verify', () => mockBackend.verifyModel(modelId, prompt), { model_id: modelId, test_prompt: prompt });
+  }
+
+  public verifyStatus(sessionId: string) {
+    return this.request('GET', `/config/ai/verify/${sessionId}/status`, () => mockBackend.verifyStatus(sessionId));
+  }
+
+  public getVerifyLog(sessionId: string) {
+    return this.request('GET', `/config/ai/verify/${sessionId}/log`, () => mockBackend.getVerifyLog(sessionId));
   }
 
   // --- SESSIONS & SCHEDULER ---

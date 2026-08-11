@@ -1066,7 +1066,7 @@ class MockBackendEngine {
     const updated: AIHarness = {
       id,
       name: data.name,
-      invocation_semantics: data.invocation_semantics || '',
+      invocation_semantics: data.invocation_semantics || { supports_streaming: true, supports_function_calling: true, supports_vision: false, timeout_default_ms: 30000, protocol: 'HTTP REST' },
       created_at: idx !== -1 ? this.harnesses[idx].created_at : new Date().toISOString()
     };
     if (idx !== -1) {
@@ -1306,6 +1306,21 @@ class MockBackendEngine {
       output_text: `Test execution successful for model "${model?.name || model_id}". Prompt received: "${test_prompt}".`,
       duration_ms: 320
     };
+  }
+
+  public verifyModel(modelId: string, prompt?: string): any {
+    const model = this.models.find(m => m.id === modelId);
+    const sessionId = `verify-${modelId}-${Date.now()}`;
+    if (!model) return { error: 'Model not found' };
+    return { sessionId, model_id: modelId, message: `Verification started for ${model.name}` };
+  }
+
+  public verifyStatus(sessionId: string): any {
+    return { running: false, exit_code: 0, id: sessionId };
+  }
+
+  public getVerifyLog(sessionId: string): string[] {
+    return [`[verify] Session ${sessionId} completed`];
   }
 
   // ==========================================

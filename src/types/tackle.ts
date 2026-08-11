@@ -1,7 +1,7 @@
 export interface AIProvider {
   id: string;
   name: string;
-  type: 'openai' | 'anthropic' | 'gemini' | 'ollama' | 'custom';
+  type: 'openai' | 'anthropic' | 'gemini' | 'ollama' | 'spring_ai' | 'lm_server' | 'codex' | 'opencode' | 'custom';
   endpoint_url?: string;
   api_key?: string;
   config_json?: Record<string, any>;
@@ -11,7 +11,13 @@ export interface AIProvider {
 export interface AIHarness {
   id: string;
   name: string;
-  invocation_semantics?: string;
+  invocation_semantics?: {
+    supports_streaming?: boolean;
+    supports_function_calling?: boolean;
+    supports_vision?: boolean;
+    timeout_default_ms?: number;
+    protocol?: string;
+  };
   created_at?: string;
 }
 
@@ -21,6 +27,7 @@ export interface AIModel {
   harness_id: string;
   provider_id?: string;
   model_identifier: string;
+  verified?: boolean;
   created_at?: string;
 }
 
@@ -32,7 +39,7 @@ export interface AIConfigBundle {
   provider_id?: string;
   harness_id?: string;
   priority: number;
-  invocation_mode?: 'sync' | 'async' | 'stream';
+  invocation_mode?: 'direct' | 'stream' | 'batch' | 'fallback' | 'sync' | 'async';
   command?: string;
   endpoint_url?: string;
   timeout_ms?: number;
@@ -40,6 +47,8 @@ export interface AIConfigBundle {
   valid_to?: string;
   is_active: boolean;
   metadata?: Record<string, any>;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface AIRoleConfig {

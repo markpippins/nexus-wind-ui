@@ -47,19 +47,19 @@ export const INITIAL_AI_HARNESSES: AIHarness[] = [
   {
     id: 'harness-opencode',
     name: 'Opencode CLI Driver',
-    invocation_semantics: 'opencode-agent --role {role} --model {model_identifier} --bundle {bundle_id}',
+    invocation_semantics: { supports_streaming: true, supports_function_calling: true, supports_vision: true, timeout_default_ms: 30000, protocol: 'CLI' },
     created_at: '2026-07-25T06:20:00Z'
   },
   {
     id: 'harness-mcp-stdio',
     name: 'MCP Stdio Bridge',
-    invocation_semantics: 'mcp-bridge --port 3135 --stdio tackle-prompt-bridge',
+    invocation_semantics: { supports_streaming: true, supports_function_calling: false, supports_vision: false, timeout_default_ms: 15000, protocol: 'MCP stdio' },
     created_at: '2026-07-25T06:25:00Z'
   },
   {
     id: 'harness-direct-rest',
     name: 'REST Direct Runner',
-    invocation_semantics: 'POST /config/ai/test --json {model_id, test_prompt}',
+    invocation_semantics: { supports_streaming: false, supports_function_calling: false, supports_vision: false, timeout_default_ms: 30000, protocol: 'HTTP REST' },
     created_at: '2026-07-25T06:30:00Z'
   }
 ];
