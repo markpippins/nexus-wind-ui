@@ -108,7 +108,7 @@ export const INITIAL_AI_CONFIG_BUNDLES: AIConfigBundle[] = [
     provider_id: 'prov-gemini',
     harness_id: 'harness-opencode',
     priority: 10,
-    invocation_mode: 'stream',
+    invocation_mode: 'CLI',
     timeout_ms: 120000,
     is_active: true,
     metadata: { memory_cache: 'redis:mem:idx:engineer', max_context: 1000000 }
@@ -121,7 +121,7 @@ export const INITIAL_AI_CONFIG_BUNDLES: AIConfigBundle[] = [
     provider_id: 'prov-anthropic',
     harness_id: 'harness-opencode',
     priority: 5,
-    invocation_mode: 'sync',
+    invocation_mode: 'HTTP',
     timeout_ms: 60000,
     is_active: true,
     metadata: { breaker_fallback: true }
@@ -134,7 +134,7 @@ export const INITIAL_AI_CONFIG_BUNDLES: AIConfigBundle[] = [
     provider_id: 'prov-anthropic',
     harness_id: 'harness-opencode',
     priority: 10,
-    invocation_mode: 'sync',
+    invocation_mode: 'CLI',
     timeout_ms: 90000,
     is_active: true,
     metadata: { validation_strictness: 'high' }
@@ -147,7 +147,7 @@ export const INITIAL_AI_CONFIG_BUNDLES: AIConfigBundle[] = [
     provider_id: 'prov-gemini',
     harness_id: 'harness-opencode',
     priority: 10,
-    invocation_mode: 'stream',
+    invocation_mode: 'MCP',
     timeout_ms: 45000,
     is_active: true,
     metadata: { prompt_namespace: 'prompt:idx:operator' }

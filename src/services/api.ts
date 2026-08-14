@@ -1,11 +1,20 @@
 import { mockBackend } from './mockBackend';
-import { ApiLog } from '../types/wind';
+import {
+  ApiLog, Outcome, Task, Workflow, WorkflowVersion, WorkflowNode, WorkflowEdge
+} from '../types/wind';
+import {
+  PromptTemplate, RoleTaskAssignment, RoleMemoryProcedure, RoleToolAccess, ScheduledAgent
+} from '../types/tackle';
 
 export type ApiMode = 'MOCK' | 'LIVE';
 
 class ApiService {
   private mode: ApiMode = 'MOCK';
-  private baseUrl: string = 'http://localhost:3410';
+  // wind-srv :3300 — serves /api/* and /health
+  private baseUrl: string = 'http://localhost:3300';
+  // tackle-srv :3410 — serves /config/ai/*, /sessions, /scheduler, /memory/*,
+  // /prompts/*, /tasks/*, /config/failure-recovery
+  private tackleBaseUrl: string = 'http://localhost:3410';
   private logs: ApiLog[] = [];
   private listeners: ((logs: ApiLog[]) => void)[] = [];
 
@@ -17,6 +26,10 @@ class ApiService {
     const savedUrl = localStorage.getItem('wind_api_base_url');
     if (savedUrl) {
       this.baseUrl = savedUrl;
+    }
+    const savedTackleUrl = localStorage.getItem('wind_tackle_base_url');
+    if (savedTackleUrl) {
+      this.tackleBaseUrl = savedTackleUrl;
     }
   }
 
@@ -36,6 +49,15 @@ class ApiService {
   public setBaseUrl(url: string) {
     this.baseUrl = url;
     localStorage.setItem('wind_api_base_url', url);
+  }
+
+  public getTackleBaseUrl(): string {
+    return this.tackleBaseUrl;
+  }
+
+  public setTackleBaseUrl(url: string) {
+    this.tackleBaseUrl = url;
+    localStorage.setItem('wind_tackle_base_url', url);
   }
 
   public getLogs(): ApiLog[] {
@@ -58,6 +80,15 @@ class ApiService {
     this.listeners.forEach(fn => fn([...this.logs]));
   }
 
+  // Route an endpoint to the service that owns it:
+  // wind-srv serves /health and /api/*; tackle-srv serves everything else.
+  private baseFor(endpoint: string): string {
+    if (endpoint === '/health' || endpoint.startsWith('/api/')) {
+      return this.baseUrl;
+    }
+    return this.tackleBaseUrl;
+  }
+
   private logCall(method: string, endpoint: string, status: number, durationMs: number, reqBody?: any, resData?: any) {
     const curl = this.generateCurl(method, endpoint, reqBody);
     const log: ApiLog = {
@@ -78,7 +109,7 @@ class ApiService {
   }
 
   private generateCurl(method: string, endpoint: string, body?: any): string {
-    const fullUrl = `${this.baseUrl}${endpoint}`;
+    const fullUrl = `${this.baseFor(endpoint)}${endpoint}`;
     if (method === 'GET' || method === 'DELETE') {
       return `curl -s -X ${method} "${fullUrl}"`;
     }
@@ -104,7 +135,7 @@ class ApiService {
     } else {
       // LIVE REST Call
       try {
-        const fullUrl = `${this.baseUrl}${endpoint}`;
+        const fullUrl = `${this.baseFor(endpoint)}${endpoint}`;
         const options: RequestInit = {
           method,
           headers: { 'Content-Type': 'application/json' }
@@ -186,9 +217,22 @@ class ApiService {
   }
 
   // --- TASKS ---
-  public getTasks(officeId?: string) {
+  public async getTasks(officeId?: string): Promise<Task[]> {
     const url = officeId ? `/api/tasks?office_id=${officeId}` : '/api/tasks';
-    return this.request('GET', url, () => mockBackend.getTasks(officeId));
+    const data = await this.request<Task[]>('GET', url, () => mockBackend.getTasks(officeId));
+    if (this.mode === 'LIVE') {
+      // wind-srv's list endpoint doesn't embed outcomes; fetch per task to
+      // match the mock shape the UI was built against.
+      return Promise.all(data.map(async (t) => {
+        try {
+          const outs = await this.request<Outcome[]>('GET', `/api/outcomes?task_id=${t.id}`, () => []);
+          return { ...t, outcomes: outs };
+        } catch {
+          return t;
+        }
+      }));
+    }
+    return data;
   }
 
   public getTaskById(id: string) {
@@ -208,7 +252,12 @@ class ApiService {
   }
 
   // --- OUTCOMES ---
-  public getOutcomes(taskId?: string) {
+  public async getOutcomes(taskId?: string): Promise<Outcome[]> {
+    if (this.mode === 'LIVE' && !taskId) {
+      // wind-srv requires task_id; aggregate across tasks for parity with mock
+      const tasks = await this.getTasks();
+      return tasks.flatMap(t => t.outcomes || []);
+    }
     const url = taskId ? `/api/outcomes?task_id=${taskId}` : '/api/outcomes';
     return this.request('GET', url, () => mockBackend.getOutcomes(taskId));
   }
@@ -226,8 +275,17 @@ class ApiService {
   }
 
   // --- WORKFLOWS ---
-  public getWorkflows() {
-    return this.request('GET', '/api/workflows', () => mockBackend.getWorkflows());
+  public async getWorkflows(): Promise<Workflow[]> {
+    const data = await this.request<Workflow[]>('GET', '/api/workflows', () => mockBackend.getWorkflows());
+    if (this.mode === 'LIVE') {
+      // wind-srv returns version_count as a string ("1"); normalize to number
+      return data.map(w => ({
+        ...w,
+        version_count: w.version_count != null ? parseInt(String(w.version_count), 10) : undefined,
+        active_version: w.active_version != null ? Number(w.active_version) : undefined,
+      }));
+    }
+    return data;
   }
 
   public getWorkflowById(id: string) {
@@ -247,9 +305,25 @@ class ApiService {
   }
 
   // --- VERSIONS ---
-  public getVersions(workflowId?: string) {
+  public async getVersions(workflowId?: string): Promise<WorkflowVersion[]> {
     const url = workflowId ? `/api/versions?workflow_id=${workflowId}` : '/api/versions';
-    return this.request('GET', url, () => mockBackend.getVersions(workflowId));
+    const data = await this.request<WorkflowVersion[]>('GET', url, () => mockBackend.getVersions(workflowId));
+    if (this.mode === 'LIVE') {
+      // wind-srv's list endpoint doesn't embed nodes/edges (only getVersionById
+      // does); fetch per version to match the mock shape.
+      return Promise.all(data.map(async (v) => {
+        try {
+          const [nodes, edges] = await Promise.all([
+            this.request<WorkflowNode[]>('GET', `/api/nodes?version_id=${v.id}`, () => []),
+            this.request<WorkflowEdge[]>('GET', `/api/edges?version_id=${v.id}`, () => []),
+          ]);
+          return { ...v, nodes, edges };
+        } catch {
+          return v;
+        }
+      }));
+    }
+    return data;
   }
 
   public getVersionById(id: string) {
@@ -472,11 +546,13 @@ class ApiService {
   }
 
   public verifyStatus(sessionId: string) {
-    return this.request('GET', `/config/ai/verify/${sessionId}/status`, () => mockBackend.verifyStatus(sessionId));
+    return this.request('GET', `/config/ai/verify/${sessionId}`, () => mockBackend.verifyStatus(sessionId));
   }
 
   public getVerifyLog(sessionId: string) {
-    return this.request('GET', `/config/ai/verify/${sessionId}/log`, () => mockBackend.getVerifyLog(sessionId));
+    // tackle-srv exposes no separate log route; the status endpoint is the
+    // closest parity (returns the session object with exit_code etc.).
+    return this.request('GET', `/config/ai/verify/${sessionId}`, () => mockBackend.getVerifyLog(sessionId));
   }
 
   // --- SESSIONS & SCHEDULER ---
@@ -488,11 +564,19 @@ class ApiService {
     return this.request('POST', `/sessions/${sessionId}/kill`, () => mockBackend.killSession(sessionId));
   }
 
-  public getScheduler() {
+  public async getScheduler(): Promise<ScheduledAgent[]> {
+    if (this.mode === 'LIVE') {
+      const res = await this.request<any>('GET', '/scheduler', () => mockBackend.getScheduler());
+      return res?.entries ?? [];
+    }
     return this.request('GET', '/scheduler', () => mockBackend.getScheduler());
   }
 
-  public getDueScheduler() {
+  public async getDueScheduler(): Promise<ScheduledAgent[]> {
+    if (this.mode === 'LIVE') {
+      const res = await this.request<any>('GET', '/scheduler/due', () => mockBackend.getDueScheduler());
+      return res?.entries ?? [];
+    }
     return this.request('GET', '/scheduler/due', () => mockBackend.getDueScheduler());
   }
 
@@ -509,7 +593,42 @@ class ApiService {
   }
 
   // --- MEMORY & CHECKPOINTS ---
-  public getMemoryProcedures(role: string) {
+  public async getMemoryProcedures(role: string): Promise<RoleMemoryProcedure[]> {
+    if (this.mode === 'LIVE') {
+      const idx = await this.request<any>('GET', `/memory/procedures/${encodeURIComponent(role)}`, () => mockBackend.getMemoryProcedures(role));
+      const list = idx?.procedures ?? [];
+      // The index endpoint returns only {slug, summary, tags}; fetch each full
+      // card so the UI's title/body_md/version rendering isn't silently empty.
+      return Promise.all(list.map(async (p: any) => {
+        try {
+          const card = await this.request<any>('GET', `/memory/procedure/${encodeURIComponent(p.slug)}`, () => null);
+          if (card && card.body_md) {
+            return {
+              id: card.slug,
+              role,
+              slug: card.slug,
+              title: card.title || card.summary || p.slug,
+              body_md: card.body_md || '',
+              tags: card.tags || p.tags || [],
+              version: card.version ?? 1,
+              as_of_dt: card.as_of_dt || ''
+            };
+          }
+        } catch {
+          // fall through to summary-only entry
+        }
+        return {
+          id: p.slug,
+          role,
+          slug: p.slug,
+          title: p.summary || p.slug,
+          body_md: '',
+          tags: p.tags || [],
+          version: 1,
+          as_of_dt: ''
+        };
+      }));
+    }
     return this.request('GET', `/memory/procedures/${role}`, () => mockBackend.getMemoryProcedures(role));
   }
 
@@ -526,23 +645,56 @@ class ApiService {
   }
 
   public getRoleCheckpoints() {
-    return this.request('GET', '/api/mcp/memory/role-updates', () => mockBackend.getRoleCheckpoints());
+    return this.request('GET', '/memory/role-updates', () => mockBackend.getRoleCheckpoints());
   }
 
   // --- PROMPTS, TASKS & TOOL ACCESS ---
-  public getPrompts(role: string) {
+  public async getPrompts(role: string): Promise<PromptTemplate[]> {
+    if (this.mode === 'LIVE') {
+      const res = await this.request<any>('GET', `/prompts/${encodeURIComponent(role)}`, () => mockBackend.getPrompts(role));
+      return res?.prompts ?? [];
+    }
     return this.request('GET', `/prompts/${role}`, () => mockBackend.getPrompts(role));
   }
 
   public getPromptBySlug(role: string, slug: string) {
-    return this.request('GET', `/prompt/${role}/${slug}`, () => mockBackend.getPromptBySlug(role, slug));
+    return this.request('GET', `/prompts/${encodeURIComponent(role)}/${encodeURIComponent(slug)}`, () => mockBackend.getPromptBySlug(role, slug));
   }
 
-  public getRoleTasks(role: string) {
+  public async getRoleTasks(role: string): Promise<RoleTaskAssignment[]> {
+    if (this.mode === 'LIVE') {
+      // tackle-srv serves /tasks/?role= (not /tasks/:role) and wraps in {count, tasks}
+      const res = await this.request<any>('GET', `/tasks/?role=${encodeURIComponent(role)}`, () => mockBackend.getRoleTasks(role));
+      const rows = res?.tasks ?? [];
+      return rows.map((t: any) => ({
+        id: t.id,
+        role: t.role,
+        prompt_id: t.prompt_id,
+        prompt_slug: t.prompt_slug,
+        task_name: t.task_slug || t.task_name,
+        description: t.scope || t.description,
+        active: t.active !== false,
+        created_at: t.created_at
+      }));
+    }
     return this.request('GET', `/tasks/${role}`, () => mockBackend.getRoleTasks(role));
   }
 
-  public getRoleToolAccess(role?: string) {
+  public async getRoleToolAccess(role?: string): Promise<RoleToolAccess[]> {
+    if (this.mode === 'LIVE') {
+      const endpoint = role ? `/config/ai/tool-access/${encodeURIComponent(role)}` : '/config/ai/tool-access';
+      const res = await this.request<any>('GET', endpoint, () => mockBackend.getRoleToolAccess(role));
+      const rows = res?.access ?? [];
+      // Live rows are the allowlist (presence = allowed); map to the UI shape.
+      return rows.map((r: any) => ({
+        id: r.id,
+        role: r.role,
+        tool_name: r.tool_slug || r.tool_name,
+        allowed: true,
+        restriction_rules: r.restriction_rules,
+        updated_at: r.updated_at || r.created_at
+      }));
+    }
     const endpoint = role ? `/config/ai/tool-access/${role}` : '/config/ai/tool-access';
     return this.request('GET', endpoint, () => mockBackend.getRoleToolAccess(role));
   }

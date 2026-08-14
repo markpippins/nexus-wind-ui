@@ -68,7 +68,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
     provider_id: '',
     harness_id: '',
     priority: 10,
-    invocation_mode: 'sync',
+    invocation_mode: 'CLI',
     timeout_ms: 60000,
     is_active: true,
     metadata: { failover_trigger: 'rate_limit_429' }
@@ -275,7 +275,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
         provider_id: providers[0]?.id || 'prov-gemini',
         harness_id: harnesses[0]?.id || 'harness-opencode',
         priority: 5,
-        invocation_mode: 'sync',
+        invocation_mode: 'CLI',
         timeout_ms: 60000,
         is_active: true,
         metadata: { failover_trigger: 'rate_limit_429' }
@@ -817,7 +817,7 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
                             <div>•</div>
                             <div>Harness: <span className="text-emerald-400">{b.harness_id || 'Default'}</span></div>
                             <div>•</div>
-                            <div>Mode: <span className="text-amber-300">{b.invocation_mode || 'sync'}</span></div>
+                            <div>Mode: <span className="text-amber-300">{b.invocation_mode || 'CLI'}</span></div>
                             <div>•</div>
                             <div>Timeout: <span className="text-cyan-300">{b.timeout_ms}ms</span></div>
                           </div>
@@ -1448,13 +1448,15 @@ export const TackleManager: React.FC<TackleManagerProps> = ({ isDark, onRefreshA
                 <div className="space-y-1">
                   <label className="text-[10px] text-[#8b949e] block font-bold">INVOCATION MODE:</label>
                   <select
-                    value={editingBundle.invocation_mode || 'sync'}
+                    value={editingBundle.invocation_mode || 'CLI'}
                     onChange={(e) => setEditingBundle({ ...editingBundle, invocation_mode: e.target.value as any })}
                     className="w-full px-2.5 py-1.5 rounded border border-[#30363d] bg-[#0d1117] text-[#c9d1d9]"
                   >
-                    <option value="sync">sync</option>
-                    <option value="async">async</option>
-                    <option value="stream">stream</option>
+                    <option value="CLI">CLI (opencode / codex harness launch)</option>
+                    <option value="HTTP">HTTP (direct endpoint round-trip)</option>
+                    <option value="SDK">SDK (provider SDK client)</option>
+                    <option value="MCP">MCP (model-context-protocol tool)</option>
+                    <option value="INTERACTIVE">INTERACTIVE (Freebuff-hosted — not harness-launchable)</option>
                   </select>
                 </div>
 

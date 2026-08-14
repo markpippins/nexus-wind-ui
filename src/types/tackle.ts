@@ -39,7 +39,7 @@ export interface AIConfigBundle {
   provider_id?: string;
   harness_id?: string;
   priority: number;
-  invocation_mode?: 'direct' | 'stream' | 'batch' | 'fallback' | 'sync' | 'async';
+  invocation_mode?: 'CLI' | 'HTTP' | 'SDK' | 'MCP' | 'INTERACTIVE';
   command?: string;
   endpoint_url?: string;
   timeout_ms?: number;
