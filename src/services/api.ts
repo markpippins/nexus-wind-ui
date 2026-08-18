@@ -10,11 +10,18 @@ export type ApiMode = 'MOCK' | 'LIVE';
 
 class ApiService {
   private mode: ApiMode = 'MOCK';
-  // wind-srv :3300 — serves /api/* and /health
-  private baseUrl: string = 'http://localhost:3300';
-  // tackle-srv :3410 — serves /config/ai/*, /sessions, /scheduler, /memory/*,
-  // /prompts/*, /tasks/*, /config/failure-recovery
-  private tackleBaseUrl: string = 'http://localhost:3410';
+  // T25 2.4 (R-A-2026-08-15-003 collision resolution): runtime lookup with
+  // env-var fallback. Resolution precedence:
+  //   localStorage (explicit user override) > runtime lookup (terrain
+  //   /api/v1/lookup/{unit}) > $<UNIT>_TARGET env > legacy localhost literal.
+  // The env/legacy value is set synchronously so callers always have a URL;
+  // the lookup refines it once it returns (3s timeout, silent on failure).
+  private lookupUrl: string = (import.meta as any).env?.VITE_LOOKUP_URL || 'http://localhost:8084';
+  // wind-srv — serves /api/* and /health (default :3300)
+  private baseUrl: string = (import.meta as any).env?.VITE_WIND_SRV_TARGET || 'http://localhost:3300';
+  // tackle-srv — serves /config/ai/*, /sessions, /scheduler, /memory/*,
+  // /prompts/*, /tasks/*, /config/failure-recovery (default :3410)
+  private tackleBaseUrl: string = (import.meta as any).env?.VITE_TACKLE_SRV_TARGET || 'http://localhost:3410';
   private logs: ApiLog[] = [];
   private listeners: ((logs: ApiLog[]) => void)[] = [];
 
@@ -30,6 +37,48 @@ class ApiService {
     const savedTackleUrl = localStorage.getItem('wind_tackle_base_url');
     if (savedTackleUrl) {
       this.tackleBaseUrl = savedTackleUrl;
+    }
+    // Non-blocking runtime lookup — refines the URL unless the user set an
+    // explicit override in localStorage.
+    void this.resolveFromLookup();
+  }
+
+  private async lookupUnit(unit: string): Promise<string | null> {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 3000);
+    try {
+      const res = await fetch(`${this.lookupUrl}/api/v1/lookup/${unit}`, { signal: ctrl.signal });
+      if (!res.ok) {
+        return null;
+      }
+      const d = await res.json();
+      const eps = d.endpoints || [];
+      const e = eps.find((x: any) => x.instance === d.preferred) || eps[0];
+      if (!e || !e.port) {
+        return null;
+      }
+      return `${e.scheme || 'http'}://${e.ip || e.host}:${e.port}`;
+    } catch {
+      return null; // lookup down -> env/legacy fallback stays
+    } finally {
+      clearTimeout(t);
+    }
+  }
+
+  private async resolveFromLookup(): Promise<void> {
+    try {
+      const [wind, tackle] = await Promise.all([
+        this.lookupUnit('wind-srv'),
+        this.lookupUnit('tackle-srv'),
+      ]);
+      if (wind && !localStorage.getItem('wind_api_base_url')) {
+        this.baseUrl = wind;
+      }
+      if (tackle && !localStorage.getItem('wind_tackle_base_url')) {
+        this.tackleBaseUrl = tackle;
+      }
+    } catch {
+      // keep env/legacy defaults
     }
   }
 
