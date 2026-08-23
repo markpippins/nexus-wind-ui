@@ -9,7 +9,12 @@ import {
 export type ApiMode = 'MOCK' | 'LIVE';
 
 class ApiService {
-  private mode: ApiMode = 'MOCK';
+  // The environment-selected mode is authoritative at startup: the systemd
+  // unit runs VITE_WIND_MODE=live (process env beats .env in Vite), so the
+  // client boots LIVE instead of defaulting to MOCK or honoring a stale
+  // localStorage override from a previous session. The in-UI toggle still
+  // switches mode for the current session.
+  private mode: ApiMode = (import.meta as any).env?.VITE_WIND_MODE === 'live' ? 'LIVE' : 'MOCK';
   // T25 2.4 (R-A-2026-08-15-003 collision resolution): runtime lookup with
   // env-var fallback. Resolution precedence:
   //   localStorage (explicit user override) > runtime lookup (terrain
@@ -26,10 +31,8 @@ class ApiService {
   private listeners: ((logs: ApiLog[]) => void)[] = [];
 
   constructor() {
-    const savedMode = localStorage.getItem('wind_api_mode');
-    if (savedMode === 'LIVE' || savedMode === 'MOCK') {
-      this.mode = savedMode;
-    }
+    // URL overrides from a previous session still apply (T25 collision
+    // resolution), but mode is NOT restored from localStorage — env wins.
     const savedUrl = localStorage.getItem('wind_api_base_url');
     if (savedUrl) {
       this.baseUrl = savedUrl;
