@@ -1,4 +1,5 @@
 import { mockBackend } from './mockBackend';
+import { resolveLacMode, resolveTargetUrl, LacMode } from './lac';
 import {
   ApiLog, Outcome, Task, Workflow, WorkflowVersion, WorkflowNode, WorkflowEdge
 } from '../types/wind';
@@ -8,25 +9,27 @@ import {
 
 export type ApiMode = 'MOCK' | 'LIVE';
 
+const LAC_ENV = (import.meta as any).env as Record<string, unknown> | undefined;
+
 class ApiService {
-  // The environment-selected mode is authoritative at startup: the systemd
-  // unit runs VITE_WIND_MODE=live (process env beats .env in Vite), so the
-  // client boots LIVE instead of defaulting to MOCK or honoring a stale
-  // localStorage override from a previous session. The in-UI toggle still
-  // switches mode for the current session.
-  private mode: ApiMode = (import.meta as any).env?.VITE_WIND_MODE === 'live' ? 'LIVE' : 'MOCK';
+  // LAC (thread 83d2fd5c): env is the sole mode authority, resolved once.
+  // 'mock' is explicit opt-in via VITE_WIND_MODE=mock; default is live.
+  // Mode is never read from or written to localStorage. The in-UI toggle
+  // switches mode for the current session only.
+  private lacMode: LacMode = resolveLacMode(LAC_ENV, 'VITE_WIND_MODE');
+  private mode: ApiMode = this.lacMode === 'live' ? 'LIVE' : 'MOCK';
   // T25 2.4 (R-A-2026-08-15-003 collision resolution): runtime lookup with
   // env-var fallback. Resolution precedence:
   //   localStorage (explicit user override) > runtime lookup (terrain
   //   /api/v1/lookup/{unit}) > $<UNIT>_TARGET env > legacy localhost literal.
   // The env/legacy value is set synchronously so callers always have a URL;
   // the lookup refines it once it returns (3s timeout, silent on failure).
-  private lookupUrl: string = (import.meta as any).env?.VITE_LOOKUP_URL || 'http://localhost:8084';
-  // wind-srv — serves /api/* and /health (default :3300)
-  private baseUrl: string = (import.meta as any).env?.VITE_WIND_SRV_TARGET || 'http://localhost:3300';
+  private lookupUrl: string = resolveTargetUrl(LAC_ENV, 'VITE_LOOKUP_URL', 'http://localhost:8084');
+  // wind-srv — serves /api/* and /health (documented default :3300)
+  private baseUrl: string = resolveTargetUrl(LAC_ENV, 'VITE_WIND_SRV_TARGET', 'http://localhost:3300');
   // tackle-srv — serves /config/ai/*, /sessions, /scheduler, /memory/*,
-  // /prompts/*, /tasks/*, /config/failure-recovery (default :3410)
-  private tackleBaseUrl: string = (import.meta as any).env?.VITE_TACKLE_SRV_TARGET || 'http://localhost:3410';
+  // /prompts/*, /tasks/*, /config/failure-recovery (documented default :3410)
+  private tackleBaseUrl: string = resolveTargetUrl(LAC_ENV, 'VITE_TACKLE_SRV_TARGET', 'http://localhost:3410');
   private logs: ApiLog[] = [];
   private listeners: ((logs: ApiLog[]) => void)[] = [];
 
@@ -90,8 +93,8 @@ class ApiService {
   }
 
   public setMode(mode: ApiMode) {
+    // Session-only toggle (LAC: mode is never persisted).
     this.mode = mode;
-    localStorage.setItem('wind_api_mode', mode);
   }
 
   public getBaseUrl(): string {
@@ -812,4 +815,5 @@ class ApiService {
   }
 }
 
-export const api = new ApiService();
+export const apiService = new ApiService();
+export const api = apiService;
